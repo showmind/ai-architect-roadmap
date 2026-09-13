@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>面条代码重构动画 — 架构思维入门</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --fg: #e4e4e7;
+      --accent: #3b82f6;
+      --card: #18181b;
+      --border: #27272a;
+      --success: #22c55e;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+    }
+    header {
+      text-align: center;
+      padding: 30px 20px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 { font-size: 1.5rem; color: #fff; }
+    header p { color: #a1a1aa; font-size: .9rem; }
+
+    #canvas-container {
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .controls {
+      text-align: center;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .controls button {
+      padding: 10px 24px;
+      border: 1px solid var(--accent);
+      background: transparent;
+      color: var(--accent);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: .9rem;
+      transition: background .2s, color .2s;
+    }
+    .controls button:hover, .controls button.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    .controls button:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    .stage-info {
+      max-width: 800px;
+      margin: 0 auto 20px;
+      padding: 0 20px;
+      text-align: center;
+    }
+    .stage-title {
+      font-size: 1.2rem;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .stage-desc {
+      font-size: .9rem;
+      color: #a1a1aa;
+      line-height: 1.7;
+    }
+
+    .stage-indicators {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 20px 20px;
+      flex-wrap: wrap;
+    }
+    .stage-dot {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .8rem;
+      font-weight: 600;
+      border: 2px solid var(--border);
+      color: #52525b;
+      transition: all .3s;
+    }
+    .stage-dot.active { border-color: var(--accent); color: var(--accent); background: rgba(59,130,246,.15); }
+    .stage-dot.done { border-color: var(--success); color: var(--success); background: rgba(34,197,94,.15); }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #52525b;
+      font-size: .85rem;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🔄 面条代码 → 整洁架构</h1>
+    <p>5个阶段，逐步将混沌代码重构为清晰架构</p>
+  </header>
+
+  <!-- Stage info -->
+  <div class="stage-info">
+    <div class="stage-title" id="stage-title">阶段 1：原始面条代码</div>
+    <div class="stage-desc" id="stage-desc">所有逻辑混杂在一起，没有模块化，没有抽象，代码像意大利面条一样缠绕。</div>
+  </div>
+
+  <!-- Stage dots -->
+  <div class="stage-indicators" id="stage-dots"></div>
+
+  <!-- Canvas -->
+  <div id="canvas-container"></div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button id="btn-prev" onclick="prevStage()">← 上一阶段</button>
+    <button id="btn-play" onclick="togglePlay()">▶ 自动播放</button>
+    <button id="btn-next" onclick="nextStage()">下一阶段 →</button>
+  </div>
+
+  <footer>
+    Referenced: 《架构整洁之道》Robert C. Martin · Referenced: 《代码大全2》Steve McConnell
+  </footer>
+
+  <script>
+    let currentStage = 0;
+    let playing = false;
+    let playTimer = null;
+    const stages = [
+      {
+        title: "阶段 1：原始面条代码",
+        desc: "所有逻辑混杂在一起：数据读取、验证、计算、存储、输出全在一个函数里。没有模块化，没有抽象，代码像意大利面条一样缠绕。",
+        blocks: [
+          { x: 200, y: 300, w: 160, h: 80, text: "main()", color: "#ef4444", sub: ["读取数据", "验证数据", "计算", "存储", "输出"] }
+        ],
+        arrows: []
+      },
+      {
+        title: "阶段 2：提取函数",
+        desc: "将大块逻辑拆分为独立函数。每个函数只做一件事，但模块间的依赖仍然混乱，函数互相调用形成网状结构。",
+        blocks: [
+          { x: 120, y: 180, w: 130, h: 70, text: "readData()", color: "#f59e0b" },
+          { x: 300, y: 180, w: 130, h: 70, text: "validate()", color: "#f59e0b" },
+          { x: 480, y: 180, w: 130, h: 70, text: "calculate()", color: "#f59e0b" },
+          { x: 300, y: 340, w: 130, h: 70, text: "save()", color: "#f59e0b" },
+          { x: 120, y: 340, w: 130, h: 70, text: "render()", color: "#f59e0b" },
+          { x: 300, y: 260, w: 130, h: 70, text: "main()", color: "#ef4444" }
+        ],
+        arrows: [[5,0],[5,1],[5,2],[5,3],[5,4]]
+      },
+      {
+        title: "阶段 3：引入模块划分",
+        desc: "按功能领域将函数分组为模块。数据层、业务层、展示层初步分离。但模块内部仍有耦合，边界不够清晰。",
+        blocks: [
+          { x: 80, y: 120, w: 200, h: 160, text: "数据层", color: "#3b82f6", sub: ["readData()", "save()"] },
+          { x: 360, y: 120, w: 200, h: 160, text: "业务层", color: "#f59e0b", sub: ["validate()", "calculate()"] },
+          { x: 640, y: 120, w: 200, h: 160, text: "展示层", color: "#22c55e", sub: ["render()"] },
+          { x: 360, y: 340, w: 200, h: 60, text: "main() 编排器", color: "#ef4444" }
+        ],
+        arrows: [[3,3],[1,3],[2,3]]
+      },
+      {
+        title: "阶段 4：定义接口与依赖注入",
+        desc: "为每个模块定义清晰的接口，通过依赖倒置降低耦合。上层模块依赖抽象而非具体实现。模块可以独立替换和测试。",
+        blocks: [
+          { x: 80, y: 120, w: 200, h: 160, text: "IDataSource\ninterface", color: "#3b82f6", sub: ["+read()", "+save()"] },
+          { x: 360, y: 120, w: 200, h: 160, text: "IBusinessLogic\ninterface", color: "#f59e0b", sub: ["+validate()", "+calculate()"] },
+          { x: 640, y: 120, w: 200, h: 160, text: "IView\ninterface", color: "#22c55e", sub: ["+render()"] },
+          { x: 300, y: 340, w: 200, h: 60, text: "Container / DI", color: "#8b5cf6" },
+          { x: 80, y: 340, w: 140, h: 50, text: "MySQLSource", color: "#6366f1" },
+          { x: 240, y: 340, w: 140, h: 50, text: "Calculator", color: "#6366f1" },
+          { x: 400, y: 340, w: 140, h: 50, text: "UIView", color: "#6366f1" }
+        ],
+        arrows: [[4,3],[5,3],[6,3],[0,3],[1,3],[2,3]]
+      },
+      {
+        title: "阶段 5：整洁架构完成",
+        desc: "最终架构：清晰的同心圆结构。领域模型在最内层，外部依赖指向内层。单元测试可独立运行，架构稳定且可演进。",
+        blocks: [
+          { x: 340, y: 180, w: 120, h: 120, text: "领域模型\n(Entities)", color: "#8b5cf6" },
+          { x: 200, y: 360, w: 180, h: 90, text: "用例层\n(Use Cases)", color: "#f59e0b" },
+          { x: 440, y: 360, w: 180, h: 90, text: "接口适配器\n(Adapters)", color: "#3b82f6" },
+          { x: 150, y: 510, w: 150, h: 60, text: "框架/UI\n(Frameworks)", color: "#22c55e" },
+          { x: 370, y: 510, w: 150, h: 60, text: "数据库/外部\n(External)", color: "#ef4444" },
+          { x: 570, y: 510, w: 150, h: 60, text: "驱动层\n(Drivers)", color: "#06b6d4" }
+        ],
+        arrows: [[0,1],[0,2],[1,3],[2,4],[2,5]]
+      }
+    ];
+
+    // Build stage dots
+    const dotsContainer = document.getElementById('stage-dots');
+    stages.forEach((s, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'stage-dot';
+      dot.textContent = i + 1;
+      dot.id = 'dot-' + i;
+      dotsContainer.appendChild(dot);
+    });
+
+    function updateStage() {
+      const stage = stages[currentStage];
+      document.getElementById('stage-title').textContent = stage.title;
+      document.getElementById('stage-desc').textContent = stage.desc;
+
+      // Update dots
+      for (let i = 0; i < stages.length; i++) {
+        const d = document.getElementById('dot-' + i);
+        d.className = 'stage-dot';
+        if (i < currentStage) d.classList.add('done');
+        if (i === currentStage) d.classList.add('active');
+      }
+
+      // Update buttons
+      document.getElementById('btn-prev').disabled = currentStage === 0;
+      document.getElementById('btn-next').disabled = currentStage === stages.length - 1;
+    }
+
+    // P5 sketch
+    const sketch = function(p) {
+      let blockElements = [];
+
+      p.setup = function() {
+        const canvas = p.createCanvas(800, 600);
+        canvas.parent('canvas-container');
+        p.frameRate(30);
+      };
+
+      p.draw = function() {
+        p.background(10, 10, 15);
+        const stage = stages[currentStage];
+        drawBlocks(p, stage);
+        drawArrows(p, stage);
+      };
+
+      function drawBlocks(p, stage) {
+        stage.blocks.forEach((b, i) => {
+          // Animate entrance
+          const progress = p.min(1, (p.frameCount / 30) - i * 0.3);
+          const scale = p.constrain(progress, 0, 1);
+          const w = b.w * scale;
+          const h = b.h * scale;
+          const x = b.x + (b.w - w) / 2;
+          const y = b.y + (b.h - h) / 2;
+
+          p.push();
+          p.noStroke();
+          // Glow effect
+          p.fill(b.color.charAt(0) === '#' ? p.lerpColor(p.color('#00000000'), p.color(b.color), 0.3) : b.color);
+          const alpha = p.lerp(50, 200, progress);
+          p.fill(p.color(b.color).levels[0], p.color(b.color).levels[1], p.color(b.color).levels[2], alpha * 0.3);
+          p.rect(x - 4, y - 4, w + 8, h + 8, 12);
+
+          // Main block
+          p.fill(p.color(b.color).levels[0], p.color(b.color).levels[1], p.color(b.color).levels[2], alpha);
+          p.rect(x, y, w, h, 8);
+          p.pop();
+
+          // Text
+          if (scale > 0.5) {
+            const textAlpha = p.lerp(0, 255, (progress - 0.5) * 2);
+            p.fill(255, 255, 255, textAlpha);
+            p.textAlign(p.CENTER, p.CENTER);
+            p.textSize(13);
+            p.textStyle(p.BOLD);
+            // Split text by newline
+            const lines = b.text.split('\n');
+            const lineH = 18;
+            lines.forEach((line, li) => {
+              p.text(line, x + w/2, y + h/2 - (lines.length-1)*lineH/2 + li*lineH);
+            });
+
+            if (b.sub) {
+              p.textSize(10);
+              p.fill(200, 200, 200, textAlpha * 0.7);
+              b.sub.forEach((sub, si) => {
+                p.text(sub, x + w/2, y + h + 14 + si * 13);
+              });
+            }
+          }
+        });
+      }
+
+      function drawArrows(p, stage) {
+        if (!stage.arrows) return;
+        stage.arrows.forEach(([from, to], i) => {
+          const fromB = stage.blocks[from];
+          const toB = stage.blocks[to];
+          const startX = fromB.x + fromB.w / 2;
+          const startY = fromB.y + fromB.h;
+          const endX = toB.x + toB.w / 2;
+          const endY = toB.y;
+
+          const progress = p.min(1, (p.frameCount / 20) - i * 0.5);
+          if (progress <= 0) return;
+
+          const currEndX = p.lerp(startX, endX, progress);
+          const currEndY = p.lerp(startY, endY, progress);
+
+          p.push();
+          p.stroke(255, 255, 255, 100);
+          p.strokeWeight(2);
+          p.noFill();
+          p.line(startX, startY, currEndX, currEndY);
+
+          // Arrowhead
+          const angle = p.atan2(endY - startY, endX - startX);
+          const ax = currEndX;
+          const ay = currEndY;
+          p.triangle(
+            ax, ay,
+            ax - 8 * p.cos(angle - 0.4), ay - 8 * p.sin(angle - 0.4),
+            ax - 8 * p.cos(angle + 0.4), ay - 8 * p.sin(angle + 0.4)
+          );
+          p.pop();
+        });
+      }
+    };
+
+    new p5(sketch);
+
+    function nextStage() {
+      if (currentStage < stages.length - 1) {
+        currentStage++;
+        updateStage();
+      }
+    }
+    function prevStage() {
+      if (currentStage > 0) {
+        currentStage--;
+        updateStage();
+      }
+    }
+    function togglePlay() {
+      playing = !playing;
+      const btn = document.getElementById('btn-play');
+      btn.textContent = playing ? '⏸ 暂停' : '▶ 自动播放';
+      btn.classList.toggle('active', playing);
+      if (playing) {
+        playTimer = setInterval(() => {
+          if (currentStage < stages.length - 1) {
+            currentStage++;
+            updateStage();
+          } else {
+            togglePlay();
+          }
+        }, 3000);
+      } else {
+        clearInterval(playTimer);
+      }
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') nextStage();
+      if (e.key === 'ArrowLeft') prevStage();
+      if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+    });
+
+    updateStage();
+  </script>
+</body>
+</html>

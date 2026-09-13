@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>架构思维入门 — AI时代的架构师养成之路</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --fg: #e4e4e7;
+      --accent: #3b82f6;
+      --card: #18181b;
+      --border: #27272a;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+    }
+    header {
+      text-align: center;
+      padding: 60px 20px 30px;
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 { font-size: 2rem; color: #fff; margin-bottom: 8px; }
+    header p { color: #a1a1aa; font-size: 1rem; max-width: 600px; margin: 0 auto; }
+
+    /* Progress bar */
+    .progress-container {
+      max-width: 800px;
+      margin: 30px auto 0;
+      padding: 0 20px;
+    }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: .85rem;
+      color: #a1a1aa;
+      margin-bottom: 8px;
+    }
+    .progress-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), #8b5cf6);
+      border-radius: 3px;
+      transition: width .6s ease;
+    }
+
+    /* Cards grid */
+    .principles {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+      padding: 40px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .principle-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color .2s, transform .2s;
+    }
+    .principle-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .card-header {
+      padding: 24px 24px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+    .card-icon.dry { background: rgba(59,130,246,.2); color: #3b82f6; }
+    .card-icon.yagni { background: rgba(245,158,11,.2); color: #f59e0b; }
+    .card-icon.kiss { background: rgba(34,197,94,.2); color: #22c55e; }
+    .card-icon.soc { background: rgba(139,92,246,.2); color: #8b5cf6; }
+    .card-title { font-size: 1.15rem; color: #fff; font-weight: 600; }
+    .card-tag { font-size: .7rem; padding: 2px 8px; border-radius: 999px; background: rgba(59,130,246,.15); color: var(--accent); }
+    .card-summary {
+      padding: 0 24px 16px;
+      font-size: .9rem;
+      color: #a1a1aa;
+    }
+    .card-expand {
+      padding: 0 24px;
+      font-size: .8rem;
+      color: var(--accent);
+      transition: color .2s;
+    }
+    .principle-card:hover .card-expand { color: #60a5fa; }
+
+    /* Expanded content */
+    .card-detail {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .4s ease;
+    }
+    .principle-card.expanded .card-detail {
+      max-height: 800px;
+    }
+    .detail-inner {
+      padding: 0 24px 24px;
+    }
+    .detail-section {
+      margin-bottom: 16px;
+    }
+    .detail-section h4 {
+      font-size: .85rem;
+      color: var(--accent);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .detail-section p, .detail-section pre {
+      font-size: .88rem;
+      color: #d4d4d8;
+      line-height: 1.7;
+    }
+    .detail-section pre {
+      background: #111;
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: .8rem;
+      border: 1px solid var(--border);
+    }
+    .detail-section .analogy {
+      background: rgba(59,130,246,.08);
+      border-left: 3px solid var(--accent);
+      padding: 10px 14px;
+      border-radius: 0 6px 6px 0;
+      font-size: .88rem;
+      color: #c7d2fe;
+    }
+    .detail-section .interview {
+      background: rgba(245,158,11,.08);
+      border-left: 3px solid var(--warning);
+      padding: 10px 14px;
+      border-radius: 0 6px 6px 0;
+      font-size: .85rem;
+      color: #fde68a;
+    }
+    .code-example { display: flex; gap: 12px; flex-wrap: wrap; }
+    .code-example div { flex: 1; min-width: 200px; }
+    .code-label {
+      font-size: .75rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .code-label.bad { color: var(--danger); }
+    .code-label.good { color: var(--success); }
+
+    /* CTA */
+    .cta {
+      text-align: center;
+      padding: 40px 20px 60px;
+    }
+    .cta a {
+      display: inline-block;
+      padding: 14px 40px;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .cta a:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(59,130,246,.3); }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #52525b;
+      font-size: .85rem;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 600px) {
+      .principles { grid-template-columns: 1fr; padding: 20px 12px; }
+      header h1 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🧠 架构思维入门</h1>
+    <p>掌握 DRY / YAGNI / KISS / 分离关注点 — 架构师必备的四大思维原则</p>
+  </header>
+
+  <!-- Progress indicator -->
+  <div class="progress-container">
+    <div class="progress-label">
+      <span>学习进度</span>
+      <span id="progress-text">0 / 4 已掌握</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+  </div>
+
+  <!-- 4 Principle Cards -->
+  <section class="principles">
+
+    <!-- DRY -->
+    <article class="principle-card" onclick="this.classList.toggle('expanded')">
+      <div class="card-header">
+        <div class="card-icon dry">🔄</div>
+        <div>
+          <div class="card-title">DRY — 不要重复自己</div>
+          <span class="card-tag">Don't Repeat Yourself</span>
+        </div>
+      </div>
+      <p class="card-summary">每一条知识/逻辑只应有一个单一、明确的表示形式。重复是维护成本的根源。</p>
+      <p class="card-expand">点击展开详情 →</p>
+      <div class="card-detail">
+        <div class="detail-inner">
+          <div class="detail-section">
+            <h4>一句话解释</h4>
+            <p>系统中每一段知识或逻辑必须只有一个单一的、权威的表现形式。</p>
+          </div>
+          <div class="detail-section">
+            <h4>代码反例 / 正例</h4>
+            <div class="code-example">
+              <div>
+                <div class="code-label bad">❌ 反例：重复代码</div>
+                <pre>function calcArea(r) { return Math.PI*r*r; }
+function calcCircum(r) { return 2*Math.PI*r; }
+// 如果 π 值变化，需要改两处</pre>
+              </div>
+              <div>
+                <div class="code-label good">✅ 正例：提取常量</div>
+                <pre>const PI = Math.PI;
+function calcArea(r) { return PI*r*r; }
+function calcCircum(r) { return 2*PI*r; }
+// π 只在一处定义</pre>
+              </div>
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4>生活化类比</h4>
+            <div class="analogy">
+              📋 餐厅菜单：每种菜品的配方只写在厨师手册一处，所有厨师共用。如果改配方，只改一处而不是每个厨师各抄一份。
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4>面试考点</h4>
+            <div class="interview">
+              ❓ 如何判断代码中是否存在"重复"？<br>
+              💡 不仅是代码行复制，还包括逻辑重复（不同函数实现相同业务规则）。DRY 的核心是"知识单一来源"，而非简单的代码行去重。
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- YAGNI -->
+    <article class="principle-card" onclick="this.classList.toggle('expanded')">
+      <div class="card-header">
+        <div class="card-icon yagni">🚫</div>
+        <div>
+          <div class="card-title">YAGNI — 不要过度设计</div>
+          <span class="card-tag">You Aren't Gonna Need It</span>
+        </div>
+      </div>
+      <p class="card-summary">不要编写当前不需要的功能。预测未来需求往往是浪费时间且引入复杂度。</p>
+      <p class="card-expand">点击展开详情 →</p>
+      <div class="card-detail">
+        <div class="detail-inner">
+          <div class="detail-section">
+            <h4>一句话解释</h4>
+            <p>不要编写当前不需要的功能——你"不会需要它"的概率远大于你需要它的概率。</p>
+          </div>
+          <div class="detail-section">
+            <h4>代码反例 / 正例</h4>
+            <div class="code-example">
+              <div>
+                <div class="code-label bad">❌ 反例：过度设计</div>
+                <pre>// 只需支持JSON，却预想了XML/YAML/Protobuf
+class DataParser {
+  parseJSON() {}
+  parseXML() {}
+  parseYAML() {}
+  parseProtobuf() {}
+}
+// 实际需求只有JSON，却增加了大量维护负担</pre>
+              </div>
+              <div>
+                <div class="code-label good">✅ 正例：按需扩展</div>
+                <pre>class JSONParser {
+  parse(data) { return JSON.parse(data); }
+}
+// 需要其他格式时再扩展（开闭原则）</pre>
+              </div>
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4>生活化类比</h4>
+            <div class="analogy">
+              🏠 买房：你不会因为"可能将来会生子"就买五居室。按需购买、逐步升级，才是明智的消费观。
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4>面试考点</h4>
+            <div class="interview">
+              ❓ YAGNI 和"预见性设计"矛盾吗？<br>
+              💡 不矛盾。YAGNI 反对的是"为不确定的未来付出确定的现在成本"。架构弹性（通过抽象和接口实现）与 YAGNI 并不冲突——关键在于抽象的成本是否值得。
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- KISS -->
+    <article class="principle-card" onclick="this.classList.toggle('expanded')">
+      <div class="card-header">
+        <div class="card-icon kiss">✨</div>
+        <div>
+          <div class="card-title">KISS — 保持简单</div>
+          <span class="card-tag">Keep It Simple, Stupid</span>
+        </div>
+      </div>
+      <p class="card-summary">系统设计应尽可能简单。复杂是Bug的温床，简单是可靠的基础。</p>
+      <p class="card-expand">点击展开详情 →</p>
+      <div class="card-detail">
+        <div class="detail-inner">
+          <div class="detail-section">
+            <h4>一句话解释</h4>
+            <p>设计应保持尽可能的简单，避免不必要的复杂性——简单性是可靠性的基石。</p>
+          </div>
+          <div class="detail-section">
+            <h4>代码反例 / 正例</h4>
+            <div class="code-example">
+              <div>
+                <div class="code-label bad">❌ 反例：过度抽象</div>
+                <pre>// 用3层抽象做简单的字符串拼接
+class StringContext {}
+class StringStrategyFactory {}
+class StringProcessorContext {}
+const result = processor.process(str);
+// 简单任务用复杂方案</pre>
+              </div>
+              <div>
+                <div class="code-label good">✅ 正例：直接明了</div>
+                <pre>const result = str1 + str2;
+// 需要拼接？直接 + 号
+// 90% 场景这就够了</pre>
+              </div>
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4>生活化类比</h4>
+            <div class="analogy">
+              🔧 瑞士军刀 vs 工具箱：出门只需一把瑞士军刀就能解决大部分问题，带齐整个工具箱反而增加负担。
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4>面试考点</h4>
+            <div class="interview">
+              ❓ KISS 与"可扩展性"冲突吗？<br>
+              💡 真正的简单不是没有扩展能力，而是扩展方式简单。好的简单设计是"通过简单机制支持可能的扩展"，而非"为了扩展而预先复杂化"。
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Separation of Concerns -->
+    <article class="principle-card" onclick="this.classList.toggle('expanded')">
+      <div class="card-header">
+        <div class="card-icon soc">🧩</div>
+        <div>
+          <div class="card-title">分离关注点</div>
+          <span class="card-tag">Separation of Concerns</span>
+        </div>
+      </div>
+      <p class="card-summary">将系统划分为不同功能模块，每个模块只负责一个关注点。单一职责、模块化。</p>
+      <p class="card-expand">点击展开详情 →</p>
+      <div class="card-detail">
+        <div class="detail-inner">
+          <div class="detail-section">
+            <h4>一句话解释</h4>
+            <p>每个模块/类/函数应该只有一个引起它变化的原因——即只负责一个关注点。</p>
+          </div>
+          <div class="detail-section">
+            <h4>代码反例 / 正例</h4>
+            <div class="code-example">
+              <div>
+                <div class="code-label bad">❌ 反例：混杂职责</div>
+                <pre>class UserService {
+  validate(data) {}
+  saveToDB(data) {}
+  sendEmail(data) {}
+  generateReport(data) {}
+}
+// 一个类负责验证、存储、邮件、报表</pre>
+              </div>
+              <div>
+                <div class="code-label good">✅ 正例：各司其职</div>
+                <pre>class UserValidator { validate(data) {} }
+class UserRepository { save(data) {} }
+class EmailService { send(data) {} }
+class ReportGenerator { generate(data) {} }
+// 每个类一个职责</pre>
+              </div>
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4>生活化类比</h4>
+            <div class="analogy">
+              🏢 公司运营：财务部管钱、产品部管需求、技术部管开发。各部门专注本职，通过流程协作。如果财务部也做产品，产品部也写代码，公司必定混乱。
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4>面试考点</h4>
+            <div class="interview">
+              ❓ 如何判断一个类是否"职责单一"？<br>
+              💡 使用"为什么测试"原则：如果修改类的原因超过一个，说明它有多个职责。单一职责的类应该能用一个"因为...所以修改了它"的句式解释清楚。
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
+  <!-- CTA to Quiz -->
+  <section class="cta">
+    <a href="./quiz.html">📝 开始测验 →</a>
+  </section>
+
+  <footer>
+    Hermes-orchestrated · Free AI Agents Collaboration · MIT License
+  </footer>
+
+  <script>
+    // Progress bar animation on card expansion
+    const cards = document.querySelectorAll('.principle-card');
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    let learnedCount = 0;
+
+    cards.forEach((card, idx) => {
+      // Mark as "learned" when expanded
+      card.addEventListener('click', () => {
+        if (card.classList.contains('expanded')) {
+          // Already expanded, skip
+          return;
+        }
+      });
+    });
+
+    // Auto-animate progress bar
+    setTimeout(() => { progressFill.style.width = '25%'; progressText.textContent = '1 / 4 已掌握'; }, 500);
+    setTimeout(() => { progressFill.style.width = '50%'; progressText.textContent = '2 / 4 已掌握'; }, 1500);
+    setTimeout(() => { progressFill.style.width = '75%'; progressText.textContent = '3 / 4 已掌握'; }, 2500);
+    setTimeout(() => { progressFill.style.width = '100%'; progressText.textContent = '4 / 4 已掌握'; }, 3500);
+  </script>
+</body>
+</html>
