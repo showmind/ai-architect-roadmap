@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L2-KU01 CAP 定理与 BASE 理论</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #0d1117;
+  color: #c9d1d9;
+  min-height: 100vh;
+  padding: 2rem;
+}
+.container { max-width: 1200px; margin: 0 auto; }
+h1 {
+  text-align: center;
+  font-size: 2rem;
+  color: #58a6ff;
+  margin-bottom: 0.5rem;
+}
+.subtitle {
+  text-align: center;
+  color: #8b949e;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+}
+/* CAP Triangle */
+.triangle-section {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+}
+.triangle-container {
+  position: relative;
+  width: 420px;
+  height: 360px;
+}
+.vertex {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 3px solid;
+  text-align: center;
+  line-height: 1.2;
+}
+.vertex:hover { transform: scale(1.15); }
+.vertex.active { transform: scale(1.2); box-shadow: 0 0 30px currentColor; }
+.vertex-c { top: 0; left: 50%; transform: translateX(-50%); border-color: #f78166; color: #f78166; background: rgba(247,129,102,0.1); }
+.vertex-a { bottom: 0; left: 0; border-color: #3fb950; color: #3fb950; background: rgba(63,185,80,0.1); }
+.vertex-p { bottom: 0; right: 0; border-color: #bc8cff; color: #bc8cff; background: rgba(188,140,255,0.1); }
+.vertex-c.active { box-shadow: 0 0 30px #f78166; }
+.vertex-a.active { box-shadow: 0 0 30px #3fb950; }
+.vertex-p.active { box-shadow: 0 0 30px #bc8cff; }
+.triangle-label {
+  position: absolute;
+  font-size: 0.75rem;
+  color: #8b949e;
+  font-style: italic;
+}
+.label-top { top: 42%; left: 50%; transform: translateX(-50%); }
+.label-left { bottom: 18%; left: 22%; }
+.label-right { bottom: 18%; right: 22%; }
+/* Info Panel */
+.info-panel {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  min-height: 120px;
+}
+.info-panel h3 { color: #58a6ff; margin-bottom: 0.5rem; }
+.info-panel p { line-height: 1.7; }
+/* Comparison Table */
+.table-section { margin: 2.5rem 0; }
+.table-section h2 { color: #58a6ff; margin-bottom: 1rem; font-size: 1.4rem; }
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #161b22;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.comparison-table th, .comparison-table td {
+  padding: 0.85rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #30363e;
+}
+.comparison-table th {
+  background: #1c2128;
+  color: #58a6ff;
+  font-weight: 600;
+}
+.comparison-table tr:hover { background: #1c2128; }
+.comparison-table td:first-child { color: #8b949e; font-weight: 500; }
+.tag {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.tag-cp { background: rgba(247,129,102,0.2); color: #f78166; }
+.tag-ap { background: rgba(63,185,80,0.2); color: #3fb950; }
+/* Systems Examples */
+.systems-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+.system-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 1.2rem;
+}
+.system-card h4 { margin-bottom: 0.8rem; font-size: 1.05rem; }
+.system-card.cp-card h4 { color: #f78166; }
+.system-card.ap-card h4 { color: #3fb950; }
+.system-card ul { list-style: none; padding: 0; }
+.system-card li { padding: 0.3rem 0; font-size: 0.9rem; color: #8b949e; }
+.system-card li::before { content: "▸ "; color: inherit; }
+/* Footer */
+.footer {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #30363d;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #6e7681;
+}
+.footer a { color: #58a6ff; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>CAP 定理与 BASE 理论</h1>
+  <p class="subtitle">L2-KU01 · 分布式系统核心原理 · 交互式知识单元</p>
+
+  <!-- CAP Triangle Interactive -->
+  <div class="triangle-section">
+    <div class="triangle-container">
+      <svg width="420" height="360" style="position:absolute;top:0;left:0;">
+        <polygon points="210,110 40,310 380,310" fill="none" stroke="#30363d" stroke-width="2" stroke-dasharray="5,5"/>
+      </svg>
+      <div class="vertex vertex-c" onclick="showInfo('c')">C<br><small>一致性</small></div>
+      <div class="vertex vertex-a" onclick="showInfo('a')">A<br><small>可用性</small></div>
+      <div class="vertex vertex-p" onclick="showInfo('p')">P<br><small>分区容错</small></div>
+      <span class="triangle-label label-top">Consistency</span>
+      <span class="triangle-label label-left">Availability</span>
+      <span class="triangle-label label-right">Partition Tolerance</span>
+    </div>
+  </div>
+
+  <div class="info-panel" id="infoPanel">
+    <h3>点击顶点查看详情</h3>
+    <p>CAP 定理指出：在分布式系统中，一致性 (Consistency)、可用性 (Availability)、分区容错性 (Partition Tolerance) 三者不可兼得，最多只能同时满足其中两个。</p>
+  </div>
+
+  <!-- CP vs AP Comparison -->
+  <div class="table-section">
+    <h2>CP 与 AP 系统对比</h2>
+    <table class="comparison-table">
+      <thead>
+        <tr><th>维度</th><th>CP 系统</th><th>AP 系统</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>核心保证</td><td>一致性 + 分区容错</td><td>可用性 + 分区容错</td></tr>
+        <tr><td>分区时行为</td><td>拒绝写入，保证数据一致</td><td>接受写入，可能返回旧数据</td></tr>
+        <tr><td>典型场景</td><td>金融交易、库存扣减</td><td>社交网络、内容推荐</td></tr>
+        <tr><td>一致性模型</td><td>强一致性 (Linearizable)</td><td>最终一致性 (Eventual)</td></tr>
+        <tr><td>代表系统</td><td><span class="tag tag-cp">HBase</span> <span class="tag tag-cp">MongoDB</span> <span class="tag tag-cp">Redis</span></td><td><span class="tag tag-ap">Cassandra</span> <span class="tag tag-ap">Dynamo</span> <span class="tag tag-ap">CouchDB</span></td></tr>
+        <tr><td>协议示例</td><td>Paxos / Raft</td><td>Gossip / Quorum</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- System Examples -->
+  <div class="systems-grid">
+    <div class="system-card cp-card">
+      <h4>🔒 CP 系统示例</h4>
+      <ul>
+        <li><strong>HBase</strong> — 基于 HDFS 的列式存储，强一致性</li>
+        <li><strong>MongoDB</strong> — 主从架构，写操作需多数确认</li>
+        <li><strong>Redis Cluster</strong> — 主从复制，分区时牺牲可用性</li>
+        <li><strong>Etcd / ZooKeeper</strong> — 基于 Raft 的协调服务</li>
+      </ul>
+    </div>
+    <div class="system-card ap-card">
+      <h4>🌐 AP 系统示例</h4>
+      <ul>
+        <li><strong>Cassandra</strong> — 无主架构，最终一致性可调</li>
+        <li><strong>DynamoDB</strong> — Amazon 托管，低延迟优先</li>
+        <li><strong>CouchDB</strong> — 多主复制，离线优先</li>
+        <li><strong>Voldemort</strong> — LinkedIn 键值存储</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- BASE Theory -->
+  <div class="table-section">
+    <h2>BASE 理论</h2>
+    <div class="info-panel">
+      <h3>BASE 是对 CAP 中 AP 方案的延伸</h3>
+      <p><strong>B</strong>asically <strong>A</strong>vailable（基本可用） · <strong>S</strong>oft State（软状态） · <strong>E</strong>ventual Consistency（最终一致性）<br><br>
+      BASE 牺牲强一致性来获得可用性，允许数据在一段时间内处于软状态（中间状态），但最终达到一致。适用于大多数互联网应用场景。</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>参考来源：《设计数据密集型应用》Martin Kleppmann · 《凤凰架构》周志明 · 阿里云技术博客</p>
+    <p style="margin-top:0.3rem">AI 时代的架构师养成之路 · L2-KU01</p>
+  </div>
+</div>
+
+<script>
+const infoData = {
+  c: { title: 'C — 一致性 (Consistency)', text: '所有节点在同一时刻看到的数据是相同的。读操作总能返回最新写入的结果。实现强一致性需要节点间同步协调，可能牺牲可用性。' },
+  a: { title: 'A — 可用性 (Availability)', text: '每个请求都能在有限时间内收到非错误响应，但不保证返回最新数据。系统始终可读写，但不同节点可能看到不同版本的数据。' },
+  p: { title: 'P — 分区容错 (Partition Tolerance)', text: '系统在网络分区（节点间通信故障）的情况下仍能继续运行。在分布式系统中，分区是必然发生的，因此 P 通常是必选项。' }
+};
+function showInfo(key) {
+  document.querySelectorAll('.vertex').forEach(v => v.classList.remove('active'));
+  document.querySelector('.vertex-' + key).classList.add('active');
+  const d = infoData[key];
+  document.getElementById('infoPanel').innerHTML = '<h3>' + d.title + '</h3><p>' + d.text + '</p>';
+}
+</script>
+</body>
+</html>

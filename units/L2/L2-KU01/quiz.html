@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L2-KU01 互动测验 — CAP 定理与 BASE 理论</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #0d1117;
+  color: #c9d1d9;
+  min-height: 100vh;
+  padding: 2rem;
+}
+.container { max-width: 750px; margin: 0 auto; }
+h1 { text-align: center; color: #58a6ff; font-size: 1.8rem; margin-bottom: 0.3rem; }
+.subtitle { text-align: center; color: #8b949e; font-size: 0.9rem; margin-bottom: 2rem; }
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #21262d;
+  border-radius: 3px;
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1f6feb, #58a6ff);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+.question-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  padding: 1.8rem;
+  margin-bottom: 1.5rem;
+  display: none;
+}
+.question-card.active { display: block; }
+.question-number {
+  color: #58a6ff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.question-text { font-size: 1.05rem; line-height: 1.6; margin-bottom: 1.2rem; }
+.options { list-style: none; }
+.options li {
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.6rem;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.options li:hover { border-color: #58a6ff; background: #1c2128; }
+.options li.selected { border-color: #58a6ff; background: rgba(88,166,255,0.1); }
+.options li.correct { border-color: #3fb950; background: rgba(63,185,80,0.15); }
+.options li.wrong { border-color: #f78166; background: rgba(247,129,102,0.15); }
+.explanation {
+  margin-top: 1rem;
+  padding: 0.8rem 1rem;
+  background: #0d1117;
+  border-left: 3px solid #58a6ff;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  display: none;
+}
+.explanation.show { display: block; }
+.btn-next {
+  display: block;
+  width: 100%;
+  padding: 0.8rem;
+  background: #1f6feb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background 0.2s;
+}
+.btn-next:hover { background: #388bfd; }
+.btn-next:disabled { background: #30363d; color: #6e7681; cursor: not-allowed; }
+.result-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  padding: 2rem;
+  text-align: center;
+  display: none;
+}
+.result-card.active { display: block; }
+.result-score { font-size: 3rem; color: #58a6ff; font-weight: bold; }
+.result-detail { color: #8b949e; margin: 1rem 0; }
+.result-msg { font-size: 1.1rem; margin-bottom: 1.5rem; }
+.btn-restart {
+  padding: 0.7rem 2rem;
+  background: #21262d;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.btn-restart:hover { background: #30363d; }
+.footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #30363d;
+  text-align: center;
+  font-size: 0.78rem;
+  color: #6e7681;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>CAP 定理与 BASE 理论 · 互动测验</h1>
+  <p class="subtitle">L2-KU01 · 5 道题 · 即时判分</p>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+  <div id="quizContainer"></div>
+
+  <div class="result-card" id="resultCard">
+    <div class="result-score" id="resultScore">0/5</div>
+    <div class="result-detail" id="resultDetail"></div>
+    <div class="result-msg" id="resultMsg"></div>
+    <button class="btn-restart" onclick="restartQuiz()">重新测验</button>
+  </div>
+
+  <div class="footer">
+    参考来源：《设计数据密集型应用》Martin Kleppmann · 《凤凰架构》周志明 · 阿里云技术博客
+  </div>
+</div>
+
+<script>
+const questions = [
+  {
+    q: 'CAP 定理中，分布式系统在网络分区发生时必须在哪两个属性之间做出取舍？',
+    options: ['一致性与可用性', '可用性与分区容错性', '一致性与分区容错性', '三者可以同时满足'],
+    answer: 0,
+    explanation: 'CAP 定理的核心是：当网络分区（P）发生时，系统无法同时保证一致性（C）和可用性（A），必须在两者之间选择。分区容错（P）在分布式系统中是必须面对的。'
+  },
+  {
+    q: '以下哪个系统属于典型的 AP 系统？',
+    options: ['HBase', 'ZooKeeper', 'Cassandra', 'Redis Cluster'],
+    answer: 2,
+    explanation: 'Cassandra 是典型的 AP 系统，采用无主架构，优先保证可用性，通过最终一致性模型处理数据同步。HBase、ZooKeeper、Redis Cluster 都属于 CP 系统。'
+  },
+  {
+    q: 'BASE 理论中的 "E" 代表什么？',
+    options: ['弹性 (Elastic)', '最终一致性 (Eventual Consistency)', '实体 (Entity)', '事件 (Event)'],
+    answer: 1,
+    explanation: 'BASE 是 Basically Available（基本可用）、Soft State（软状态）、Eventual Consistency（最终一致性）的缩写。E 代表 Eventual Consistency，即数据经过一段时间后最终达到一致状态。'
+  },
+  {
+    q: '在网络分区场景下，一个 CP 系统会如何响应客户端的写请求？',
+    options: ['接受写入并异步同步', '拒绝写入，返回错误', '接受写入但返回旧数据', '随机选择一个分区写入'],
+    answer: 1,
+    explanation: 'CP 系统在网络分区时会优先保证一致性，因此会拒绝可能导致不一致的写入操作，牺牲部分可用性。这是 CP 与 AP 的核心区别。'
+  },
+  {
+    q: '关于 CAP 定理，以下哪项描述是正确的？',
+    options: ['可以同时满足 CA 三个属性', '分区时可以同时保证强一致和高可用', '分区容错性在分布式系统中通常不可回避', 'BASE 理论是对 CP 方案的延伸'],
+    answer: 2,
+    explanation: '网络分区在分布式系统中是客观存在的（网络不可靠），因此分区容错性（P）通常是必须保证的。实际中更多是在 C 和 A 之间权衡。BASE 理论是对 AP 方案的延伸。'
+  }
+];
+
+let currentQ = 0;
+let score = 0;
+let answered = false;
+
+function renderQuestion() {
+  const q = questions[currentQ];
+  const container = document.getElementById('quizContainer');
+  const progress = ((currentQ) / questions.length * 100);
+  document.getElementById('progressFill').style.width = progress + '%';
+
+  let html = '<div class="question-card active" id="qCard">';
+  html += '<div class="question-number">第 ' + (currentQ + 1) + ' / ' + questions.length + ' 题</div>';
+  html += '<div class="question-text">' + q.q + '</div>';
+  html += '<ul class="options" id="optList">';
+  for (let i = 0; i < q.options.length; i++) {
+    html += '<li onclick="selectOption(' + i + ')">' + String.fromCharCode(65 + i) + '. ' + q.options[i] + '</li>';
+  }
+  html += '</ul>';
+  html += '<div class="explanation" id="explanation">' + q.explanation + '</div>';
+  html += '<button class="btn-next" id="btnNext" onclick="nextQuestion()" disabled>下一题</button>';
+  html += '</div>';
+  container.innerHTML = html;
+  answered = false;
+}
+
+function selectOption(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[currentQ];
+  const opts = document.querySelectorAll('#optList li');
+  for (let i = 0; i < opts.length; i++) {
+    opts[i].style.pointerEvents = 'none';
+    if (i === q.answer) opts[i].classList.add('correct');
+    if (i === idx && i !== q.answer) opts[i].classList.add('wrong');
+  }
+  if (idx === q.answer) score++;
+  document.getElementById('explanation').classList.add('show');
+  document.getElementById('btnNext').disabled = false;
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= questions.length) {
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResult() {
+  document.getElementById('quizContainer').innerHTML = '';
+  document.getElementById('progressFill').style.width = '100%';
+  const resultCard = document.getElementById('resultCard');
+  resultCard.classList.add('active');
+  document.getElementById('resultScore').textContent = score + ' / 5';
+  let msg = '';
+  if (score === 5) msg = '🎉 完美！你对 CAP 定理和 BASE 理论有深刻理解！';
+  else if (score >= 3) msg = '👍 不错！继续巩固相关知识，争取满分！';
+  else msg = '📚 建议重新学习本单元内容，理解 CAP 与 BASE 的核心概念。';
+  document.getElementById('resultMsg').textContent = msg;
+  document.getElementById('resultDetail').textContent = '正确率：' + (score / 5 * 100) + '%';
+}
+
+function restartQuiz() {
+  currentQ = 0;
+  score = 0;
+  document.getElementById('resultCard').classList.remove('active');
+  renderQuestion();
+}
+
+renderQuestion();
+</script>
+</body>
+</html>

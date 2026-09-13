@@ -1,0 +1,59 @@
+{
+  "id": "L2-KU01",
+  "title": "CAP 定理与 BASE 理论",
+  "level": "L2",
+  "category": "分布式系统",
+  "tags": ["CAP定理", "BASE理论", "一致性", "可用性", "分区容错", "分布式"],
+  "description": "深入理解分布式系统核心原理：CAP 定理的三个属性及其权衡关系，BASE 理论作为 AP 方案的工程化延伸，CP 与 AP 系统的典型代表与设计差异。",
+  "files": {
+    "index.html": "CAP 三角形交互式可视化 + CP/AP 系统对比表 + 深色主题",
+    "animation.html": "p5.js 网络分区场景动画，演示正常/分区/恢复三种状态",
+    "quiz.html": "5 道互动测验题，即时判分与解析",
+    "diagram.svg": "CAP+BASE 组合图，深色主题 SVG",
+    "meta.json": "知识单元元数据与参考来源"
+  },
+  "learning_objectives": [
+    "理解 CAP 定理三个属性的含义及其不可兼得的关系",
+    "掌握 CP 与 AP 系统的行为差异及典型代表",
+    "理解 BASE 理论的核心思想及其与 CAP 的关系",
+    "能够根据业务场景选择合适的分布式一致性策略"
+  ],
+  "references": [
+    {
+      "title": "设计数据密集型应用",
+      "author": "Martin Kleppmann",
+      "publisher": "中国电力出版社",
+      "year": 2018,
+      "relevant_chapters": ["第5章 复制", "第9章 一致性与共识"],
+      "isbn": "9787519826741"
+    },
+    {
+      "title": "凤凰架构：构建可靠的大型分布式系统",
+      "author": "周志明",
+      "publisher": "机械工业出版社",
+      "year": 2021,
+      "relevant_chapters": ["第4章 分布式系统基础"],
+      "isbn": "9787111683508"
+    },
+    {
+      "title": "阿里云技术博客：CAP 定理详解与实践",
+      "author": "阿里云开发者社区",
+      "url": "https://developer.aliyun.com/article/cap-theorem",
+      "publisher": "阿里云计算有限公司",
+      "description": "从工程实践角度解析 CAP 定理在云原生场景下的应用"
+    }
+  ],
+  "tech_stack": {
+    "frontend": "纯 HTML/CSS/JavaScript",
+    "dependencies": ["p5.js 1.9.0 (CDN)"],
+    "build_tools": "无",
+    "backend": "无"
+  },
+  "ui": {
+    "language": "中文",
+    "theme": "深色 (GitHub Dark)",
+    "responsive": true
+  },
+  "created": "2026-09-13",
+  "version": "1.0.0"
+}

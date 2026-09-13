@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L2-KU01 网络分区动画 — CAP 定理</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #0d1117;
+  color: #c9d1d9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+h1 { color: #58a6ff; font-size: 1.5rem; margin-bottom: 0.3rem; }
+.subtitle { color: #8b949e; font-size: 0.85rem; margin-bottom: 1rem; }
+canvas { border: 1px solid #30363d; border-radius: 8px; }
+.controls {
+  display: flex;
+  gap: 0.8rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+button {
+  background: #21262d;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+button:hover { background: #30363d; border-color: #58a6ff; }
+button.active { background: #1f6feb; border-color: #58a6ff; color: #fff; }
+.status {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin-top: 1rem;
+  max-width: 650px;
+  width: 100%;
+  text-align: center;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.status .label { color: #8b949e; }
+.status .value { color: #58a6ff; font-weight: 600; }
+.legend {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.8rem;
+  font-size: 0.8rem;
+  color: #8b949e;
+  justify-content: center;
+}
+.legend span { display: flex; align-items: center; gap: 0.3rem; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.footer {
+  margin-top: 1.5rem;
+  font-size: 0.75rem;
+  color: #6e7681;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<h1>网络分区场景动画</h1>
+<p class="subtitle">L2-KU01 · CAP 定理 · p5.js 交互演示</p>
+
+<div class="controls">
+  <button id="btnNormal" class="active" onclick="setMode('normal')">正常运行</button>
+  <button id="btnPartition" onclick="setMode('partition')">模拟分区</button>
+  <button id="btnHeal" onclick="setMode('heal')">分区恢复</button>
+  <button id="btnWrite" onclick="sendWrite()">发送写请求</button>
+  <button id="btnRead" onclick="sendRead()">发送读请求</button>
+</div>
+
+<div id="canvas-container"></div>
+
+<div class="status" id="status">
+  <span class="label">当前状态：</span>
+  <span class="value" id="statusText">系统正常运行，所有节点同步</span>
+</div>
+
+<div class="legend">
+  <span><span class="dot" style="background:#3fb950"></span>主节点</span>
+  <span><span class="dot" style="background:#58a6ff"></span>从节点</span>
+  <span><span class="dot" style="background:#f78166"></span>分区中</span>
+  <span><span class="dot" style="background:#bc8cff"></span>请求</span>
+</div>
+
+<div class="footer">
+  参考来源：《设计数据密集型应用》Martin Kleppmann · 《凤凰架构》周志明 · 阿里云技术博客
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+<script>
+let mode = 'normal';
+let nodes = [];
+let messages = [];
+let partitionLine = null;
+let canvasW = 640, canvasH = 360;
+
+function setup() {
+  let cnv = createCanvas(canvasW, canvasH);
+  cnv.parent('canvas-container');
+  textFont('sans-serif');
+  // Create nodes: 1 primary + 2 replicas
+  nodes = [
+    { id: 0, x: 320, y: 100, role: 'primary', color: '#3fb950', label: '主节点', data: 'v1' },
+    { id: 1, x: 160, y: 260, role: 'replica', color: '#58a6ff', label: '从节点A', data: 'v1' },
+    { id: 2, x: 480, y: 260, role: 'replica', color: '#58a6ff', label: '从节点B', data: 'v1' }
+  ];
+}
+
+function draw() {
+  background(13, 17, 23);
+  // Draw connections
+  for (let i = 1; i < nodes.length; i++) {
+    let n0 = nodes[0], ni = nodes[i];
+    if (mode === 'partition' && i === 2) {
+      stroke(247, 129, 102, 100);
+      drawingContext.setLineDash([6, 6]);
+    } else {
+      stroke(48, 54, 61, 180);
+      drawingContext.setLineDash([]);
+    }
+    strokeWeight(2);
+    line(n0.x, n0.y, ni.x, ni.y);
+  }
+  drawingContext.setLineDash([]);
+
+  // Draw partition zone
+  if (mode === 'partition') {
+    noStroke();
+    fill(247, 129, 102, 0.05);
+    rect(320, 0, 320, canvasH);
+    stroke(247, 129, 102, 0.4);
+    strokeWeight(2);
+    drawingContext.setLineDash([8, 4]);
+    line(320, 0, 320, canvasH);
+    drawingContext.setLineDash([]);
+    noStroke();
+    fill(247, 129, 102);
+    textSize(11);
+    text('分区区域', 500, 30);
+  }
+
+  // Draw nodes
+  for (let n of nodes) {
+    noStroke();
+    let c = n.role === 'primary' ? color(63, 185, 80) : color(88, 166, 255);
+    if (mode === 'partition' && n.id === 2) c = color(247, 129, 102);
+    fill(c);
+    ellipse(n.x, n.y, 50, 50);
+    fill(255);
+    textSize(12);
+    textAlign(CENTER, CENTER);
+    text(n.label, n.x, n.y - 8);
+    textSize(10);
+    fill(200);
+    text(n.data, n.x, n.y + 10);
+  }
+
+  // Draw messages
+  for (let i = messages.length - 1; i >= 0; i--) {
+    let m = messages[i];
+    m.progress += 0.025;
+    let px = lerp(m.x1, m.x2, m.progress);
+    let py = lerp(m.y1, m.y2, m.progress);
+    noStroke();
+    fill(m.color);
+    ellipse(px, py, 12, 12);
+    if (m.progress >= 1) {
+      if (m.type === 'write' && m.target !== 2) nodes[m.target].data = 'v2';
+      if (m.type === 'read') m.result = nodes[m.target].data;
+      messages.splice(i, 1);
+    }
+  }
+  textAlign(LEFT, BASELINE);
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
+  if (m === 'normal') {
+    document.getElementById('btnNormal').classList.add('active');
+    document.getElementById('statusText').textContent = '系统正常运行，所有节点数据同步';
+    nodes[2].data = nodes[0].data;
+  } else if (m === 'partition') {
+    document.getElementById('btnPartition').classList.add('active');
+    document.getElementById('statusText').textContent = '⚠ 网络分区！从节点B与主节点失联，CP系统将拒绝写入，AP系统继续服务';
+  } else if (m === 'heal') {
+    document.getElementById('btnHeal').classList.add('active');
+    document.getElementById('statusText').textContent = '分区恢复中... 从节点B正在同步主节点数据';
+    setTimeout(() => { nodes[2].data = nodes[0].data; }, 1500);
+  }
+}
+
+function sendWrite() {
+  if (mode === 'partition') {
+    messages.push({ x1: nodes[0].x, y1: nodes[0].y, x2: nodes[1].x, y2: nodes[1].y, progress: 0, color: color(188, 140, 255), type: 'write', target: 1 });
+    document.getElementById('statusText').textContent = 'CP模式：写请求仅同步到可达节点，牺牲部分可用性保证一致性';
+  } else {
+    for (let i = 1; i < nodes.length; i++) {
+      messages.push({ x1: nodes[0].x, y1: nodes[0].y, x2: nodes[i].x, y2: nodes[i].y, progress: 0, color: color(188, 140, 255), type: 'write', target: i });
+    }
+    nodes[0].data = 'v2';
+    document.getElementById('statusText').textContent = '写请求已发送到所有节点，数据版本更新为 v2';
+  }
+}
+
+function sendRead() {
+  let target = mode === 'partition' ? 2 : 1;
+  messages.push({ x1: nodes[0].x, y1: nodes[0].y, x2: nodes[target].x, y2: nodes[target].y, progress: 0, color: color(255, 234, 102), type: 'read', target: target });
+  if (mode === 'partition') {
+    document.getElementById('statusText').textContent = 'AP模式：读请求由分区内节点响应，可能返回旧数据 (v1)';
+  } else {
+    document.getElementById('statusText').textContent = '读请求正常响应，返回最新数据';
+  }
+}
+</script>
+</body>
+</html>

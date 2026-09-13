@@ -1,0 +1,63 @@
+{
+  "id": "L1-KU02",
+  "title": "编码规范与 SOLID 原则",
+  "level": "L1",
+  "description": "掌握 SOLID 五大设计原则：单一职责、开闭原则、里氏替换、接口隔离、依赖反转。",
+  "objectives": [
+    "理解 SOLID 原则的含义与价值",
+    "识别代码中违反 SOLID 原则的模式",
+    "应用 SOLID 原则重构代码",
+    "在架构设计中权衡原则之间的张力"
+  ],
+  "materials": [
+    {
+      "type": "html",
+      "path": "index.html",
+      "title": "SOLID 原则卡片",
+      "description": "5个可展开的交互式卡片，点击展开详解"
+    },
+    {
+      "type": "html",
+      "path": "animation.html",
+      "title": "p5.js 五阶段动画",
+      "description": "通过动画可视化五个原则的关系"
+    },
+    {
+      "type": "html",
+      "path": "quiz.html",
+      "title": "互动测验",
+      "description": "5道即时判分题目"
+    },
+    {
+      "type": "svg",
+      "path": "diagram.svg",
+      "title": "SOLID 五边形关系图",
+      "description": "深色主题 SVG 图表"
+    }
+  ],
+  "references": [
+    {
+      "title": "《代码大全 第2版》",
+      "author": "Steve McConnell",
+      "publisher": "电子工业出版社",
+      "year": 2006,
+      "isbn": "978-7-121-02298-2",
+      "notes": "第 5-7 章关于模块化、耦合与内聚的理论基础"
+    },
+    {
+      "title": "《架构整洁之道》",
+      "author": "Robert C. Martin",
+      "publisher": "电子工业出版社",
+      "year": 2018,
+      "isbn": "978-7-115-48546-9",
+      "notes": "第 4-8 章详细阐述 SOLID 原则的工程实践"
+    },
+    {
+      "title": "腾讯云开发者社区 — SOLID 原则详解",
+      "author": "腾讯云博客",
+      "url": "https://cloud.tencent.com/developer/article/1880000",
+      "notes": "中文社区对 SOLID 原则的实例化讲解"
+    }
+  ],
+  "tags": ["SOLID", "设计原则", "编码规范", "面向对象", "架构"]
+}

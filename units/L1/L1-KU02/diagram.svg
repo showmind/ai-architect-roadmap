@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
+  <defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#58a6ff;stop-opacity:0.6"/>
+      <stop offset="100%" style="stop-color:#a371f7;stop-opacity:0.6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="600" height="600" fill="#0d1117"/>
+
+  <!-- Pentagon vertices (centered at 300,280) -->
+  <!-- S top: (300, 120) -->
+  <!-- O top-right: (447, 215) -->
+  <!-- L bottom-right: (400, 385) -->
+  <!-- I bottom-left: (200, 385) -->
+  <!-- D top-left: (153, 215) -->
+
+  <!-- Pentagon outline -->
+  <polygon points="300,120 447,215 400,385 200,385 153,215"
+           fill="none" stroke="#30363d" stroke-width="2" stroke-dasharray="6,4"/>
+
+  <!-- Diagonal connection lines -->
+  <line x1="300" y1="120" x2="400" y2="385" stroke="#21262d" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="300" y1="120" x2="200" y2="385" stroke="#21262d" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="447" y1="215" x2="200" y2="385" stroke="#21262d" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="153" y1="215" x2="400" y2="385" stroke="#21262d" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="447" y1="215" x2="153" y2="215" stroke="#21262d" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- Center hub -->
+  <circle cx="300" cy="270" r="45" fill="#161b22" stroke="#58a6ff" stroke-width="2" filter="url(#glow)"/>
+  <text x="300" y="265" text-anchor="middle" fill="#58a6ff" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="14" font-weight="700">SOLID</text>
+  <text x="300" y="283" text-anchor="middle" fill="#8b949e" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="10">设计原则</text>
+
+  <!-- S - Single Responsibility -->
+  <circle cx="300" cy="120" r="42" fill="#161b22" stroke="#58a6ff" stroke-width="2.5" filter="url(#glow)"/>
+  <text x="300" y="116" text-anchor="middle" fill="#58a6ff" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="18" font-weight="700">S</text>
+  <text x="300" y="132" text-anchor="middle" fill="#8b949e" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="8">单一职责</text>
+  <!-- Connection to center -->
+  <line x1="300" y1="162" x2="300" y2="225" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+  <!-- O - Open/Closed -->
+  <circle cx="447" cy="215" r="42" fill="#161b22" stroke="#a371f7" stroke-width="2.5" filter="url(#glow)"/>
+  <text x="447" y="211" text-anchor="middle" fill="#a371f7" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="18" font-weight="700">O</text>
+  <text x="447" y="227" text-anchor="middle" fill="#8b949e" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="8">开闭原则</text>
+  <!-- Connection to center -->
+  <line x1="412" y1="235" x2="335" y2="255" stroke="#a371f7" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+  <!-- L - Liskov Substitution -->
+  <circle cx="400" cy="385" r="42" fill="#161b22" stroke="#3fb950" stroke-width="2.5" filter="url(#glow)"/>
+  <text x="400" y="381" text-anchor="middle" fill="#3fb950" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="18" font-weight="700">L</text>
+  <text x="400" y="397" text-anchor="middle" fill="#8b949e" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="8">里氏替换</text>
+  <!-- Connection to center -->
+  <line x1="370" y1="355" x2="320" y2="295" stroke="#3fb950" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+  <!-- I - Interface Segregation -->
+  <circle cx="200" cy="385" r="42" fill="#161b22" stroke="#d29922" stroke-width="2.5" filter="url(#glow)"/>
+  <text x="200" y="381" text-anchor="middle" fill="#d29922" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="18" font-weight="700">I</text>
+  <text x="200" y="397" text-anchor="middle" fill="#8b949e" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="8">接口隔离</text>
+  <!-- Connection to center -->
+  <line x1="230" y1="355" x2="280" y2="295" stroke="#d29922" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+  <!-- D - Dependency Inversion -->
+  <circle cx="153" cy="215" r="42" fill="#161b22" stroke="#f85149" stroke-width="2.5" filter="url(#glow)"/>
+  <text x="153" y="211" text-anchor="middle" fill="#f85149" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="18" font-weight="700">D</text>
+  <text x="153" y="227" text-anchor="middle" fill="#8b949e" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="8">依赖反转</text>
+  <!-- Connection to center -->
+  <line x1="188" y1="235" x2="265" y2="255" stroke="#f85149" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+  <!-- Relationship annotations -->
+  <text x="370" y="155" text-anchor="middle" fill="#58a6ff" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="8" opacity="0.7">基础</text>
+  <text x="440" y="300" text-anchor="middle" fill="#a371f7" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="8" opacity="0.7">扩展</text>
+  <text x="300" y="420" text-anchor="middle" fill="#3fb950" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="8" opacity="0.7">契约</text>
+  <text x="140" y="300" text-anchor="middle" fill="#d29922" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="8" opacity="0.7">解耦</text>
+  <text x="230" y="155" text-anchor="middle" fill="#f85149" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="8" opacity="0.7">抽象</text>
+
+  <!-- Title -->
+  <text x="300" y="500" text-anchor="middle" fill="#e6edf3" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="16" font-weight="600">SOLID 原则关系图</text>
+  <text x="300" y="525" text-anchor="middle" fill="#8b949e" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="11">五大原则相互支撑，共同构建可维护的软件架构</text>
+
+  <!-- Footer -->
+  <text x="300" y="570" text-anchor="middle" fill="#8b949e" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="9">参考来源：《代码大全 第2版》Steve McConnell · 《架构整洁之道》Robert C. Martin · 腾讯云开发者社区</text>
+</svg>

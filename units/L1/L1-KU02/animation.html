@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L1-KU02 · SOLID 动画演示</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 1rem;
+  }
+  h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+  h1 span { color: #58a6ff; }
+  .subtitle { color: #8b949e; font-size: 0.9rem; margin-bottom: 1rem; }
+  #canvas-container {
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  canvas { display: block; }
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .btn {
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #e6edf3;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+  .btn:hover { background: #30363d; border-color: #58a6ff; }
+  .btn.active { background: #1f6feb; border-color: #58a6ff; }
+  .info {
+    max-width: 640px;
+    text-align: center;
+    padding: 1rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    min-height: 80px;
+  }
+  .info h3 { font-size: 1rem; margin-bottom: 0.4rem; }
+  .info p { color: #8b949e; font-size: 0.85rem; line-height: 1.5; }
+  .progress {
+    display: flex;
+    gap: 0.3rem;
+    margin-bottom: 1rem;
+  }
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #30363d;
+    transition: background 0.3s;
+  }
+  .dot.active { background: #58a6ff; }
+  footer {
+    margin-top: 1.5rem;
+    color: #8b949e;
+    font-size: 0.75rem;
+    text-align: center;
+  }
+  footer a { color: #58a6ff; text-decoration: none; }
+</style>
+</head>
+<body>
+<h1>L1-KU02 · <span>SOLID 五阶段动画</span></h1>
+<p class="subtitle">可视化理解五个设计原则的递进关系</p>
+
+<div class="progress" id="progress"></div>
+<div id="canvas-container"></div>
+
+<div class="controls">
+  <button class="btn active" onclick="goTo(0)">S · 单一职责</button>
+  <button class="btn" onclick="goTo(1)">O · 开闭原则</button>
+  <button class="btn" onclick="goTo(2)">L · 里氏替换</button>
+  <button class="btn" onclick="goTo(3)">I · 接口隔离</button>
+  <button class="btn" onclick="goTo(4)">D · 依赖反转</button>
+</div>
+
+<div class="info" id="info">
+  <h3>点击按钮或等待自动播放</h3>
+  <p>每个阶段展示一个 SOLID 原则的核心概念可视化</p>
+</div>
+
+<footer>
+  参考来源：《架构整洁之道》Robert C. Martin · 《代码大全 第2版》Steve McConnell · 腾讯云开发者社区 ·
+  <a href="index.html">返回首页</a>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+<script>
+const stages = [
+  {
+    title: 'S · 单一职责原则 (SRP)',
+    desc: '每个模块只负责一件事。动画中五个独立粒子各自运动，互不干扰。',
+    color: '#58a6ff'
+  },
+  {
+    title: 'O · 开闭原则 (OCP)',
+    desc: '对扩展开放，对修改关闭。新粒子可以加入，但已有粒子行为不变。',
+    color: '#a371f7'
+  },
+  {
+    title: 'L · 里氏替换原则 (LSP)',
+    desc: '子类可替换父类。不同颜色粒子遵循相同接口，可互换使用。',
+    color: '#3fb950'
+  },
+  {
+    title: 'I · 接口隔离原则 (ISP)',
+    desc: '不强迫依赖不需要的接口。粒子按颜色分组，各组独立交互。',
+    color: '#d29922'
+  },
+  {
+    title: 'D · 依赖反转原则 (DIP)',
+    desc: '依赖抽象而非具体。中心枢纽通过统一接口连接所有粒子。',
+    color: '#f85149'
+  }
+];
+
+let currentStage = 0;
+let particles = [];
+let angle = 0;
+let autoPlay = true;
+let autoTimer = 0;
+
+function setup() {
+  const cnv = createCanvas(640, 400);
+  cnv.parent('canvas-container');
+  textAlign(CENTER, CENTER);
+  initParticles();
+
+  for (let i = 0; i < 5; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i === 0 ? ' active' : '');
+    document.getElementById('progress').appendChild(dot);
+  }
+  updateInfo();
+}
+
+function initParticles() {
+  particles = [];
+  for (let i = 0; i < 5; i++) {
+    particles.push({
+      x: random(60, 580),
+      y: random(60, 340),
+      vx: random(-1, 1),
+      vy: random(-1, 1),
+      r: random(15, 25),
+      color: stages[i].color,
+      label: ['S', 'O', 'L', 'I', 'D'][i]
+    });
+  }
+}
+
+function draw() {
+  background(13, 17, 23);
+  angle += 0.02;
+
+  const c = stages[currentStage].color;
+
+  if (currentStage === 0) {
+    drawSRP();
+  } else if (currentStage === 1) {
+    drawOCP();
+  } else if (currentStage === 2) {
+    drawLSP();
+  } else if (currentStage === 3) {
+    drawISP();
+  } else if (currentStage === 4) {
+    drawDIP();
+  }
+
+  if (autoPlay) {
+    autoTimer++;
+    if (autoTimer > 180) {
+      autoTimer = 0;
+      goTo((currentStage + 1) % 5);
+    }
+  }
+}
+
+function drawSRP() {
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.x < p.r || p.x > width - p.r) p.vx *= -1;
+    if (p.y < p.r || p.y > height - p.r) p.vy *= -1;
+
+    noFill();
+    stroke(p.color);
+    strokeWeight(2);
+    ellipse(p.x, p.y, p.r * 2 + sin(angle * 2 + i) * 5);
+
+    fill(p.color);
+    noStroke();
+    textSize(14);
+    text(p.label, p.x, p.y);
+  }
+}
+
+function drawOCP() {
+  const time = frameCount * 0.01;
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    const baseX = 320 + cos(time + i * 1.2) * (80 + i * 25);
+    const baseY = 200 + sin(time + i * 1.2) * (60 + i * 20);
+
+    noFill();
+    stroke(p.color);
+    strokeWeight(2);
+    ellipse(baseX, baseY, p.r * 2);
+
+    fill(p.color);
+    noStroke();
+    textSize(14);
+    text(p.label, baseX, baseY);
+  }
+
+  stroke(stages[1].color);
+  strokeWeight(1);
+  noFill();
+  ellipse(320, 200, 280, 200);
+}
+
+function drawLSP() {
+  const cx = 320, cy = 200;
+  for (let i = 0; i < 5; i++) {
+    const a = angle + i * (TWO_PI / 5);
+    const r = 120;
+    const x = cx + cos(a) * r;
+    const y = cy + sin(a) * r;
+
+    noFill();
+    stroke(particles[i].color);
+    strokeWeight(2);
+    ellipse(x, y, 40);
+
+    fill(particles[i].color);
+    noStroke();
+    textSize(14);
+    text(particles[i].label, x, y);
+  }
+
+  stroke(255, 255, 255, 50);
+  strokeWeight(1);
+  noFill();
+  ellipse(cx, cy, 240);
+  fill(255);
+  textSize(12);
+  text('Shape (抽象基类)', cx, cy);
+}
+
+function drawISP() {
+  const groups = [[0], [1, 2], [3, 4]];
+  const colors = ['#58a6ff', '#a371f7', '#3fb950'];
+  const labels = ['SRP', 'OCP+LSP', 'ISP+DIP'];
+
+  for (let g = 0; g < groups.length; g++) {
+    const cx = 120 + g * 200;
+    const cy = 200;
+
+    noFill();
+    stroke(colors[g]);
+    strokeWeight(1);
+    ellipse(cx, cy, 140 + sin(angle * 2) * 10);
+
+    fill(colors[g]);
+    noStroke();
+    textSize(11);
+    text(labels[g], cx, cy - 50);
+
+    for (let j = 0; j < groups[g].length; j++) {
+      const idx = groups[g][j];
+      const a = angle * 2 + j * PI;
+      const x = cx + cos(a) * 40;
+      const y = cy + sin(a) * 40;
+
+      fill(particles[idx].color);
+      noStroke();
+      ellipse(x, y, 28);
+      fill(0);
+      textSize(12);
+      text(particles[idx].label, x, y);
+    }
+  }
+}
+
+function drawDIP() {
+  const cx = 320, cy = 200;
+
+  noFill();
+  stroke(stages[4].color);
+  strokeWeight(3);
+  ellipse(cx, cy, 60);
+  fill(stages[4].color);
+  noStroke();
+  textSize(11);
+  text('抽象层', cx, cy);
+
+  for (let i = 0; i < 5; i++) {
+    const a = angle + i * (TWO_PI / 5);
+    const r = 130;
+    const x = cx + cos(a) * r;
+    const y = cy + sin(a) * r;
+
+    stroke(particles[i].color);
+    strokeWeight(1);
+    line(cx, cy, x, y);
+
+    noFill();
+    stroke(particles[i].color);
+    strokeWeight(2);
+    ellipse(x, y, 36);
+
+    fill(particles[i].color);
+    noStroke();
+    textSize(13);
+    text(particles[i].label, x, y);
+  }
+}
+
+function goTo(n) {
+  currentStage = n;
+  autoTimer = 0;
+  autoPlay = false;
+
+  document.querySelectorAll('.btn').forEach((b, i) => {
+    b.classList.toggle('active', i === n);
+  });
+  document.querySelectorAll('.dot').forEach((d, i) => {
+    d.classList.toggle('active', i === n);
+  });
+
+  updateInfo();
+}
+
+function updateInfo() {
+  const s = stages[currentStage];
+  document.getElementById('info').innerHTML =
+    '<h3 style="color:' + s.color + '">' + s.title + '</h3><p>' + s.desc + '</p>';
+}
+</script>
+</body>
+</html>
