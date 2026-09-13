@@ -14,7 +14,7 @@
 | L1-KU01 | 设计模式在架构中的应用（23种精选） | 互动卡片 + 代码可视化 | ⬜ |
 | L1-KU02 | 编码规范与 SOLID 原则 | 互动检测题 | ⬜ |
 | L1-KU03 | 数据结构与算法工程应用 | 动画演示 | ⬜ |
-| L1-KU04 | 架构思维入门（DRY/YAGNI/KISS/分离关注点） | 互动网页 | ⬜ |
+| L1-KU04 | 架构思维入门（DRY/YAGNI/KISS/Separation） | 互动网页 + p5动画 + 测验 | ✅ |
 | L1-KU05 | 代码复用与模块化设计 | 互动演示 | ⬜ |
 
 ### Level 2 · 分布式与架构设计
@@ -94,7 +94,7 @@ units/{level}/{ku-id}/
 
 ```
 1. Hermes 从 MASTER_PLAN 挑 ⬜ 状态 KU
-2. 派发给子代理（MiMo Code / OpenCode / CodeBuddy）
+2. 派发给子代理（**OpenCode** 主力，其他备用）
 3. 子代理按 KU 模板开发完整交付物
 4. Hermes review → 合并 → 部署 GitHub Pages
 5. 更新本文件状态为 ✅
