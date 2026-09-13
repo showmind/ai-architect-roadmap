@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>架构思维测验 — AI时代的架构师养成之路</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --fg: #e4e4e7;
+      --accent: #3b82f6;
+      --card: #18181b;
+      --border: #27272a;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+    }
+    header {
+      text-align: center;
+      padding: 40px 20px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 { font-size: 1.6rem; color: #fff; }
+
+    .quiz-container {
+      max-width: 750px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    /* Progress */
+    .quiz-progress {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    .q-dot {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .8rem; font-weight: 600;
+      border: 2px solid var(--border);
+      color: #52525b;
+      transition: all .3s;
+    }
+    .q-dot.active { border-color: var(--accent); color: var(--accent); background: rgba(59,130,246,.15); }
+    .q-dot.correct { border-color: var(--success); color: var(--success); background: rgba(34,197,94,.15); }
+    .q-dot.wrong { border-color: var(--danger); color: var(--danger); background: rgba(239,68,68,.15); }
+    .q-dot.answered { border-color: var(--border); color: #a1a1aa; }
+
+    /* Question card */
+    .question-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+    .question-number {
+      font-size: .8rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .question-text {
+      font-size: 1.05rem;
+      color: #fff;
+      margin-bottom: 20px;
+      line-height: 1.7;
+    }
+    .question-type {
+      display: inline-block;
+      font-size: .7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 16px;
+    }
+    .question-type.single { background: rgba(59,130,246,.15); color: var(--accent); }
+    .question-type.multi { background: rgba(245,158,11,.15); color: var(--warning); }
+
+    /* Options */
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .option {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .option:hover { border-color: var(--accent); background: rgba(59,130,246,.05); }
+    .option.selected { border-color: var(--accent); background: rgba(59,130,246,.1); }
+    .option.correct { border-color: var(--success); background: rgba(34,197,94,.1); }
+    .option.wrong { border-color: var(--danger); background: rgba(239,68,68,.1); }
+    .option.disabled { cursor: not-allowed; opacity: .7; }
+
+    .option-marker {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .8rem; flex-shrink: 0;
+      transition: all .2s;
+      margin-top: 2px;
+    }
+    .option:hover .option-marker { border-color: var(--accent); }
+    .option.selected .option-marker { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .option.correct .option-marker { border-color: var(--success); background: var(--success); color: #fff; }
+    .option.wrong .option-marker { border-color: var(--danger); background: var(--danger); color: #fff; }
+    .option-letter { font-size: .75rem; font-weight: 600; }
+
+    .option-content { flex: 1; }
+    .option-text { font-size: .9rem; color: #d4d4d8; }
+    .option-explain { font-size: .8rem; color: #a1a1aa; margin-top: 4px; display: none; }
+    .option.selected .option-explain,
+    .option.correct .option-explain { display: block; }
+
+    /* Feedback */
+    .feedback {
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 16px;
+      font-size: .9rem;
+      display: none;
+    }
+    .feedback.show { display: block; }
+    .feedback.correct { background: rgba(34,197,94,.1); border-left: 3px solid var(--success); color: #86efac; }
+    .feedback.wrong { background: rgba(239,68,68,.1); border-left: 3px solid var(--danger); color: #fca5a5; }
+
+    /* Score */
+    .result-section {
+      text-align: center;
+      padding: 40px 20px;
+      display: none;
+    }
+    .result-section.show { display: block; }
+    .score-circle {
+      width: 140px; height: 140px;
+      border-radius: 50%;
+      border: 6px solid var(--accent);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+    }
+    .score-number { font-size: 2.5rem; font-weight: 700; color: #fff; }
+    .score-label { font-size: .85rem; color: #a1a1aa; }
+    .comment { font-size: 1.1rem; color: #fff; margin-bottom: 8px; }
+    .comment-sub { font-size: .9rem; color: #a1a1aa; margin-bottom: 24px; }
+    .result-section a {
+      display: inline-block;
+      padding: 12px 32px;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: transform .2s;
+    }
+    .result-section a:hover { transform: translateY(-2px); }
+
+    /* Review button */
+    .review-btn {
+      display: inline-block;
+      padding: 10px 24px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: #a1a1aa;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: .9rem;
+      margin: 0 8px;
+      transition: all .2s;
+    }
+    .review-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #52525b;
+      font-size: .85rem;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>📝 架构思维测验</h1>
+    <p>检验你对 DRY / YAGNI / KISS / 分离关注点的理解</p>
+  </header>
+
+  <div class="quiz-container">
+    <!-- Progress dots -->
+    <div class="quiz-progress" id="progress-dots"></div>
+
+    <!-- Questions rendered here -->
+    <div id="questions-container"></div>
+
+    <!-- Result section -->
+    <div class="result-section" id="result-section">
+      <div class="score-circle">
+        <div class="score-number" id="score-number">0/5</div>
+        <div class="score-label">得分</div>
+      </div>
+      <div class="comment" id="comment"></div>
+      <div class="comment-sub" id="comment-sub"></div>
+      <div>
+        <a href="./index.html">📖 回顾知识点</a>
+        <button class="review-btn" onclick="location.reload()">🔄 重新测验</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Referenced: 《架构整洁之道》Robert C. Martin · Referenced: 《代码大全2》Steve McConnell
+  </footer>
+
+  <script>
+    const questions = [
+      {
+        id: 1,
+        type: 'single',
+        text: '以下哪种做法违反了 DRY（不要重复自己）原则？',
+        options: [
+          { letter: 'A', text: '将常用常量提取到单独的配置文件中', explain: '这是 DRY 的好实践，常量集中管理' },
+          { letter: 'B', text: '在两个不同模块中复制了相同的验证逻辑', explain: '❌ 正确答案：复制验证逻辑是典型违反 DRY 的做法。当验证规则变更时，需要修改多处，容易遗漏导致 bug' },
+          { letter: 'C', text: '使用工具函数封装常用的字符串处理', explain: '这是 DRY 的体现，封装复用' },
+          { letter: 'D', text: '通过继承复用父类的通用方法', explain: '这也是 DRY 的体现，继承复用' }
+        ],
+        correct: ['B'],
+        explanation: 'DRY 原则要求每一段知识/逻辑只有一个单一的表示形式。在两个模块中复制相同的验证逻辑意味着如果验证规则变更，你需要修改两处，增加了遗漏和出错的风险。'
+      },
+      {
+        id: 2,
+        type: 'single',
+        text: '你正在开发一个电商系统，只需要支持 JSON 格式的数据交换。但你创建了一个支持 JSON、XML、YAML、Protobuf 的通用解析器。这主要违反了什么原则？',
+        options: [
+          { letter: 'A', text: 'DRY — 不要重复自己', explain: '这里没有代码重复的问题' },
+          { letter: 'B', text: 'KISS — 保持简单', explain: '虽然也有复杂化的问题，但更直接的是创造了不需要的功能' },
+          { letter: 'C', text: 'YAGNI — 不要过度设计', explain: '✅ 正确答案：YAGNI 强调不要编写当前不需要的功能。当前只需要 JSON，却预想了所有格式，增加了不必要的复杂性和维护成本' },
+          { letter: 'D', text: '分离关注点', explain: '这不是关注点混合的问题' }
+        ],
+        correct: ['C'],
+        explanation: 'YAGNI（You Aren\'t Gonna Need It）的核心是：不要为"可能"需要的功能付出"确定"的开发成本。过度设计不仅浪费开发时间，还引入了额外的复杂度和潜在 Bug。'
+      },
+      {
+        id: 3,
+        type: 'single',
+        text: '关于 KISS（保持简单）原则，以下哪个说法是正确的？',
+        options: [
+          { letter: 'A', text: 'KISS 意味着代码不能有任何抽象层', explain: 'KISS 不排斥必要的抽象，而是反对不必要的复杂' },
+          { letter: 'B', text: 'KISS 要求代码行数越少越好', explain: '代码少不等于简单，有时为了可读性需要多一些代码' },
+          { letter: 'C', text: 'KISS 强调设计应尽可能简单，避免不必要的复杂性', explain: '✅ 正确答案：KISS 的核心是避免不必要的复杂性，简单性是可靠性的基石' },
+          { letter: 'D', text: 'KISS 只适用于初学者，资深开发者应该追求复杂优雅的设计', explain: 'KISS 适用于所有级别的开发者' }
+        ],
+        correct: ['C'],
+        explanation: 'KISS（Keep It Simple, Stupid）的核心含义是：设计应保持尽可能的简单，避免不必要的复杂性。简单的系统更容易理解、调试、维护，且更不容易产生 Bug。真正的"简单"不是功能贫乏，而是设计清晰。'
+      },
+      {
+        id: 4,
+        type: 'multi',
+        text: '以下哪些做法体现了"分离关注点"（Separation of Concerns）原则？（多选）',
+        options: [
+          { letter: 'A', text: '将数据访问逻辑与业务逻辑放在不同的类中', explain: '✅ 正确答案：数据访问和业务逻辑分离是典型的关注点分离' },
+          { letter: 'B', text: '每个类/模块只有一个引起它变化的原因', explain: '✅ 正确答案：这是"单一职责"的表述，是分离关注点的核心' },
+          { letter: 'C', text: '把所有函数放在一个文件里以便于查找', explain: '这恰恰违反了分离关注点' },
+          { letter: 'D', text: '前端展示逻辑与后端 API 逻辑分别由不同团队负责', explain: '✅ 正确答案：前后端分离也是关注点分离的体现' },
+          { letter: 'E', text: '在一个类中同时处理用户输入验证和数据库存储', explain: '这违反了分离关注点' }
+        ],
+        correct: ['A', 'B', 'D'],
+        explanation: '分离关注点要求将系统划分为不同功能模块，每个模块只负责一个关注点。A（数据访问与业务逻辑分离）、B（单一职责）、D（前后端分离）都是关注点分离的体现。C 和 E 都是将所有职责混杂在一起的做法。'
+      },
+      {
+        id: 5,
+        type: 'multi',
+        text: '在重构一段"面条代码"时，以下哪些步骤符合正确的重构策略？（多选）',
+        options: [
+          { letter: 'A', text: '先写测试用例确保重构不破坏现有功能', explain: '✅ 正确答案：重构的安全网是测试用例' },
+          { letter: 'B', text: '一次性把所有代码全部重写为新的架构', explain: '大爆炸式重写风险极高，应逐步重构' },
+          { letter: 'C', text: '先从提取重复代码为独立函数开始', explain: '✅ 正确答案：从小处着手，逐步提取' },
+          { letter: 'D', text: '在重构过程中不断运行测试验证', explain: '✅ 正确答案：持续验证确保每一步都是安全的' },
+          { letter: 'E', text: '跳过测试直接根据直觉重构', explain: '没有测试保障的重构非常危险' }
+        ],
+        correct: ['A', 'C', 'D'],
+        explanation: '正确的重构策略应该是：1）先有测试保障安全网（A）；2）从小处着手，逐步提取重复代码（C）；3）持续运行测试验证每一步（D）。B（一次性重写）和E（跳过测试）都是危险的反模式。重构的核心原则是"保持行为不变，逐步改善"。'
+      }
+    ];
+
+    let currentQuestion = 0;
+    let answers = {};
+    let scores = [];
+
+    // Build progress dots
+    const dotsContainer = document.getElementById('progress-dots');
+    questions.forEach((q, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'q-dot';
+      dot.textContent = i + 1;
+      dot.id = 'qdot-' + i;
+      dotsContainer.appendChild(dot);
+    });
+
+    function renderQuestion() {
+      const q = questions[currentQuestion];
+      const container = document.getElementById('questions-container');
+      container.innerHTML = '';
+
+      const card = document.createElement('div');
+      card.className = 'question-card';
+
+      const numTag = q.type === 'single'
+        ? '<span class="question-type single">单选题</span>'
+        : '<span class="question-type multi">多选题</span>';
+
+      let optionsHTML = '';
+      q.options.forEach((opt, idx) => {
+        const letter = String.fromCharCode(65 + idx);
+        const isAnswered = answers[q.id] !== undefined;
+        const isCorrect = q.correct.includes(letter);
+        const isSelected = answers[q.id] === letter;
+        let cls = 'option';
+        if (isAnswered) cls += ' disabled';
+        if (isSelected && !isCorrect) cls += ' wrong';
+        if (isCorrect && isSelected) cls += ' correct';
+        if (!isAnswered && isCorrect) cls += ' correct'; // show correct on review
+
+        optionsHTML += `
+          <div class="${cls}" onclick="selectOption('${letter}', ${q.id})" id="opt-${q.id}-${letter}">
+            <div class="option-marker"><span class="option-letter">${letter}</span></div>
+            <div class="option-content">
+              <div class="option-text">${opt.text}</div>
+              <div class="option-explain">${opt.explain}</div>
+            </div>
+          </div>
+        `;
+      });
+
+      const feedbackClass = answers[q.id] ? (q.correct.includes(answers[q.id]) ? 'correct' : 'wrong') : '';
+      const feedbackText = answers[q.id]
+        ? (q.correct.includes(answers[q.id]) ? '✅ 回答正确！' : '❌ 回答错误')
+        : '';
+      const showFeedback = answers[q.id] ? 'show' : '';
+
+      card.innerHTML = `
+        <div class="question-number">题目 ${currentQuestion + 1} / ${questions.length}</div>
+        ${numTag}
+        <div class="question-text">${q.text}</div>
+        <div class="options">${optionsHTML}</div>
+        <div class="feedback ${feedbackClass} ${showFeedback}">${feedbackText} ${q.explanation}</div>
+      `;
+
+      container.appendChild(card);
+      updateDots();
+    }
+
+    function selectOption(letter, qId) {
+      if (answers[qId] !== undefined) return; // already answered
+      answers[qId] = letter;
+      const q = questions[qId];
+      const isCorrect = q.correct.includes(letter);
+      scores.push(isCorrect ? 1 : 0);
+
+      renderQuestion();
+
+      // Auto advance after delay
+      if (currentQuestion < questions.length - 1) {
+        setTimeout(() => {
+          currentQuestion++;
+          renderQuestion();
+        }, 2500);
+      } else {
+        setTimeout(() => showResults(), 2500);
+      }
+    }
+
+    function updateDots() {
+      for (let i = 0; i < questions.length; i++) {
+        const dot = document.getElementById('qdot-' + i);
+        if (i < currentQuestion && answers[questions[i].id]) {
+          dot.className = 'q-dot answered';
+          if (scores[i]) dot.classList.add('correct');
+          else dot.classList.add('wrong');
+        }
+        if (i === currentQuestion) {
+          dot.className = 'q-dot active';
+        }
+      }
+    }
+
+    function showResults() {
+      const score = scores.filter(s => s).length;
+      const total = questions.length;
+      const section = document.getElementById('result-section');
+      section.classList.add('show');
+      document.getElementById('score-number').textContent = `${score}/${total}`;
+
+      const percent = score / total;
+      let comment, commentSub;
+      if (percent >= 0.8) {
+        comment = '🎉 架构思维达人！';
+        commentSub = '你对四大原则理解扎实，继续保持！';
+      } else if (percent >= 0.6) {
+        comment = '👍 不错，继续努力！';
+        commentSub = '大部分概念已掌握，建议回顾薄弱部分。';
+      } else {
+        comment = '💪 需要再接再厉！';
+        commentSub = '建议重新学习知识点章节，加深理解。';
+      }
+
+      document.getElementById('comment').textContent = comment;
+      document.getElementById('comment-sub').textContent = commentSub;
+    }
+
+    renderQuestion();
+  </script>
+</body>
+</html>
