@@ -260,10 +260,40 @@ main (稳定，可部署)
 ```
 
 - 每个 KU 一个分支，开发完合入 main
-- 不使用 worktree（单机器场景，分支隔离足够）
 - 合入后自动删除远端分支
 
-### 7.2 目录结构
+### 7.2 并行执行隔离（关键！）
+
+> ⚠️ 2026-09-13 事故：两个子代理并行跑时共享了同一工作目录，导致 L1-KU02 和 L2-KU01 混在同一个 commit 里。
+
+**规则**：
+
+1. **每个子代理必须 cd 到自己的 KU 目录**，不能共享项目根目录
+2. **delegate_task 的 context 里必须明确指定**：`工作目录：cd ~/projects/ai-architect-roadmap/units/{level}/{KU-id}/`
+3. **子代理写文件必须用绝对路径**，不能用相对路径
+4. **Hermes 在派发并行任务前，先确保各分支已创建并 push**
+5. **子代理完成后，Hermes 先 `git checkout main && git pull`，再合并分支**
+
+```bash
+# 正确流程：
+# 1. Hermes 创建分支
+git checkout -b feat/{KU-id} && git push -u origin feat/{KU-id}
+
+# 2. 子代理 cd 到独立目录
+cd ~/projects/ai-architect-roadmap/units/{level}/{KU-id}/
+opencode run "..."
+
+# 3. 子代理只提交自己目录下的文件
+git add units/{level}/{KU-id}/ && git commit -m "..."
+git push origin feat/{KU-id}
+
+# 4. Hermes 合并
+git checkout main && git pull
+git merge feat/{KU-id} --no-edit
+git push origin main
+```
+
+### 7.3 目录结构
 
 ```
 ai-architect-roadmap/
