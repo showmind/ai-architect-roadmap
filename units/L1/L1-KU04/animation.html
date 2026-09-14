@@ -3,381 +3,151 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>面条代码重构动画 — 架构思维入门</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <title>架构思维动画 — AI时代的架构师养成之路</title>
   <style>
-    :root {
-      --bg: #0a0a0f;
-      --fg: #e4e4e7;
-      --accent: #3b82f6;
-      --card: #18181b;
-      --border: #27272a;
-      --success: #22c55e;
-      --danger: #ef4444;
-    }
+    :root { --bg: #0a0a0f; --fg: #e4e4e7; --accent: #3b82f6; --card: #18181b; --border: #27272a; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--fg);
-      line-height: 1.6;
-    }
-    header {
-      text-align: center;
-      padding: 30px 20px 20px;
-      border-bottom: 1px solid var(--border);
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; }
+    header { text-align: center; padding: 40px 20px 20px; border-bottom: 1px solid var(--border); }
     header h1 { font-size: 1.5rem; color: #fff; }
-    header p { color: #a1a1aa; font-size: .9rem; }
-
-    #canvas-container {
-      display: flex;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .controls {
-      text-align: center;
-      padding: 16px;
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .controls button {
-      padding: 10px 24px;
-      border: 1px solid var(--accent);
-      background: transparent;
-      color: var(--accent);
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: .9rem;
-      transition: background .2s, color .2s;
-    }
-    .controls button:hover, .controls button.active {
-      background: var(--accent);
-      color: #fff;
-    }
-    .controls button:disabled {
-      opacity: .4;
-      cursor: not-allowed;
-    }
-
-    .stage-info {
-      max-width: 800px;
-      margin: 0 auto 20px;
-      padding: 0 20px;
-      text-align: center;
-    }
-    .stage-title {
-      font-size: 1.2rem;
-      color: #fff;
-      margin-bottom: 6px;
-    }
-    .stage-desc {
-      font-size: .9rem;
-      color: #a1a1aa;
-      line-height: 1.7;
-    }
-
-    .stage-indicators {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      padding: 0 20px 20px;
-      flex-wrap: wrap;
-    }
-    .stage-dot {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: .8rem;
-      font-weight: 600;
-      border: 2px solid var(--border);
-      color: #52525b;
-      transition: all .3s;
-    }
-    .stage-dot.active { border-color: var(--accent); color: var(--accent); background: rgba(59,130,246,.15); }
-    .stage-dot.done { border-color: var(--success); color: var(--success); background: rgba(34,197,94,.15); }
-
-    footer {
-      text-align: center;
-      padding: 20px;
-      color: #52525b;
-      font-size: .85rem;
-      border-top: 1px solid var(--border);
-    }
+    .animation-container { max-width: 900px; margin: 0 auto; padding: 30px 20px; }
+    .canvas-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 20px; text-align: center; }
+    canvas { border-radius: 6px; background: #0f0f14; display: block; margin: 0 auto; }
+    .stage-info { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 20px; }
+    .stage-info h3 { color: #60a5fa; margin-bottom: 6px; }
+    .stage-info p { font-size: .88rem; color: #d4d4d8; }
+    .stage-info pre { background: #0f0f14; border-radius: 6px; padding: 10px; font-size: .75rem; color: #e4e4e7; margin-top: 8px; white-space: pre-wrap; }
+    .controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .ctrl-btn { padding: 8px 20px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--fg); cursor: pointer; font-size: .85rem; }
+    .ctrl-btn:hover { border-color: var(--accent); color: #fff; }
+    .ctrl-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    footer { text-align: center; padding: 18px; color: #52525b; font-size: .8rem; border-top: 1px solid var(--border); }
   </style>
 </head>
 <body>
+  <header><h1>🎬 从面条代码到架构思维</h1></header>
 
-  <header>
-    <h1>🔄 面条代码 → 整洁架构</h1>
-    <p>5个阶段，逐步将混沌代码重构为清晰架构</p>
-  </header>
+  <section class="animation-container">
+    <div class="canvas-wrap"><canvas id="canvas" width="800" height="340"></canvas></div>
 
-  <!-- Stage info -->
-  <div class="stage-info">
-    <div class="stage-title" id="stage-title">阶段 1：原始面条代码</div>
-    <div class="stage-desc" id="stage-desc">所有逻辑混杂在一起，没有模块化，没有抽象，代码像意大利面条一样缠绕。</div>
-  </div>
+    <div class="stage-info" id="stage-info">
+      <h3 id="stage-title">准备开始</h3>
+      <p id="stage-desc">点击下方按钮观看架构思维如何一步步重构混乱的代码。</p>
+      <pre id="stage-code"></pre>
+    </div>
 
-  <!-- Stage dots -->
-  <div class="stage-indicators" id="stage-dots"></div>
+    <div class="controls">
+      <button class="ctrl-btn" onclick="setStage(0)">1. 混乱起点</button>
+      <button class="ctrl-btn" onclick="setStage(1)">2. DRY 去重</button>
+      <button class="ctrl-btn" onclick="setStage(2)">3. YAGNI 删减</button>
+      <button class="ctrl-btn" onclick="setStage(3)">4. KISS 简化</button>
+      <button class="ctrl-btn" onclick="setStage(4)">5. 分离关注点</button>
+      <button class="ctrl-btn" onclick="togglePlay()" id="play-btn">▶ 自动播放</button>
+    </div>
+  </section>
 
-  <!-- Canvas -->
-  <div id="canvas-container"></div>
-
-  <!-- Controls -->
-  <div class="controls">
-    <button id="btn-prev" onclick="prevStage()">← 上一阶段</button>
-    <button id="btn-play" onclick="togglePlay()">▶ 自动播放</button>
-    <button id="btn-next" onclick="nextStage()">下一阶段 →</button>
-  </div>
-
-  <footer>
-    Referenced: 《架构整洁之道》Robert C. Martin · Referenced: 《代码大全2》Steve McConnell
-  </footer>
+  <footer>Hermes-orchestrated · OpenCode · 2026</footer>
 
   <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const stages = [
+      { title: '阶段 1：混乱起点 — 面条代码', desc: '所有逻辑堆在一个函数里：验证、计算、格式化、存储全混在一起。代码难读、难改、难测试。', code: 'function processEverything(data) {\n  // 验证（20行）\n  // 计算（15行）\n  // 格式化（10行）\n  // 存储（8行）\n  // 全在一个函数里！！！\n}' },
+      { title: '阶段 2：DRY 去重 — 提取公共逻辑', desc: '发现多处重复的验证逻辑，提取为独立函数。每段知识只有一个权威表示。', code: 'function validate(input) { /* 唯一一份验证 */ }\nfunction process(data) {\n  validate(data);\n  // 计算、格式化各司其职\n}' },
+      { title: '阶段 3：YAGNI 删减 — 删除不必要的功能', desc: '当前只用 JSON，却实现了 XML/YAML/Protobuf 解析器。删掉不需要的，只保留当前够用的。', code: '// 删掉 XML/YAML/Protobuf 解析器\nfunction parse(data) {\n  return JSON.parse(data);\n}' },
+      { title: '阶段 4：KISS 简化 — 让代码一目了然', desc: '把过度抽象的层级压平，减少不必要的中间层。代码应该像在读一个故事。', code: '// 去掉多余的抽象层\nfunction calculateTotal(items) {\n  return items\n    .filter(i => i.valid)\n    .reduce((sum, i) => sum + i.price, 0);\n}' },
+      { title: '阶段 5：分离关注点 — 各司其职', desc: '每个模块只负责一件事。验证、计算、存储各自独立，高内聚低耦合。', code: 'class Validator { validate(){} }\nclass Calculator { total(){} }\nclass Repository { save(){} }\n// 每个类只有一个职责' }
+    ];
+
     let currentStage = 0;
     let playing = false;
     let playTimer = null;
-    const stages = [
-      {
-        title: "阶段 1：原始面条代码",
-        desc: "所有逻辑混杂在一起：数据读取、验证、计算、存储、输出全在一个函数里。没有模块化，没有抽象，代码像意大利面条一样缠绕。",
-        blocks: [
-          { x: 200, y: 300, w: 160, h: 80, text: "main()", color: "#ef4444", sub: ["读取数据", "验证数据", "计算", "存储", "输出"] }
-        ],
-        arrows: []
-      },
-      {
-        title: "阶段 2：提取函数",
-        desc: "将大块逻辑拆分为独立函数。每个函数只做一件事，但模块间的依赖仍然混乱，函数互相调用形成网状结构。",
-        blocks: [
-          { x: 120, y: 180, w: 130, h: 70, text: "readData()", color: "#f59e0b" },
-          { x: 300, y: 180, w: 130, h: 70, text: "validate()", color: "#f59e0b" },
-          { x: 480, y: 180, w: 130, h: 70, text: "calculate()", color: "#f59e0b" },
-          { x: 300, y: 340, w: 130, h: 70, text: "save()", color: "#f59e0b" },
-          { x: 120, y: 340, w: 130, h: 70, text: "render()", color: "#f59e0b" },
-          { x: 300, y: 260, w: 130, h: 70, text: "main()", color: "#ef4444" }
-        ],
-        arrows: [[5,0],[5,1],[5,2],[5,3],[5,4]]
-      },
-      {
-        title: "阶段 3：引入模块划分",
-        desc: "按功能领域将函数分组为模块。数据层、业务层、展示层初步分离。但模块内部仍有耦合，边界不够清晰。",
-        blocks: [
-          { x: 80, y: 120, w: 200, h: 160, text: "数据层", color: "#3b82f6", sub: ["readData()", "save()"] },
-          { x: 360, y: 120, w: 200, h: 160, text: "业务层", color: "#f59e0b", sub: ["validate()", "calculate()"] },
-          { x: 640, y: 120, w: 200, h: 160, text: "展示层", color: "#22c55e", sub: ["render()"] },
-          { x: 360, y: 340, w: 200, h: 60, text: "main() 编排器", color: "#ef4444" }
-        ],
-        arrows: [[3,3],[1,3],[2,3]]
-      },
-      {
-        title: "阶段 4：定义接口与依赖注入",
-        desc: "为每个模块定义清晰的接口，通过依赖倒置降低耦合。上层模块依赖抽象而非具体实现。模块可以独立替换和测试。",
-        blocks: [
-          { x: 80, y: 120, w: 200, h: 160, text: "IDataSource\ninterface", color: "#3b82f6", sub: ["+read()", "+save()"] },
-          { x: 360, y: 120, w: 200, h: 160, text: "IBusinessLogic\ninterface", color: "#f59e0b", sub: ["+validate()", "+calculate()"] },
-          { x: 640, y: 120, w: 200, h: 160, text: "IView\ninterface", color: "#22c55e", sub: ["+render()"] },
-          { x: 300, y: 340, w: 200, h: 60, text: "Container / DI", color: "#8b5cf6" },
-          { x: 80, y: 340, w: 140, h: 50, text: "MySQLSource", color: "#6366f1" },
-          { x: 240, y: 340, w: 140, h: 50, text: "Calculator", color: "#6366f1" },
-          { x: 400, y: 340, w: 140, h: 50, text: "UIView", color: "#6366f1" }
-        ],
-        arrows: [[4,3],[5,3],[6,3],[0,3],[1,3],[2,3]]
-      },
-      {
-        title: "阶段 5：整洁架构完成",
-        desc: "最终架构：清晰的同心圆结构。领域模型在最内层，外部依赖指向内层。单元测试可独立运行，架构稳定且可演进。",
-        blocks: [
-          { x: 340, y: 180, w: 120, h: 120, text: "领域模型\n(Entities)", color: "#8b5cf6" },
-          { x: 200, y: 360, w: 180, h: 90, text: "用例层\n(Use Cases)", color: "#f59e0b" },
-          { x: 440, y: 360, w: 180, h: 90, text: "接口适配器\n(Adapters)", color: "#3b82f6" },
-          { x: 150, y: 510, w: 150, h: 60, text: "框架/UI\n(Frameworks)", color: "#22c55e" },
-          { x: 370, y: 510, w: 150, h: 60, text: "数据库/外部\n(External)", color: "#ef4444" },
-          { x: 570, y: 510, w: 150, h: 60, text: "驱动层\n(Drivers)", color: "#06b6d4" }
-        ],
-        arrows: [[0,1],[0,2],[1,3],[2,4],[2,5]]
-      }
-    ];
 
-    // Build stage dots
-    const dotsContainer = document.getElementById('stage-dots');
-    stages.forEach((s, i) => {
-      const dot = document.createElement('div');
-      dot.className = 'stage-dot';
-      dot.textContent = i + 1;
-      dot.id = 'dot-' + i;
-      dotsContainer.appendChild(dot);
-    });
+    function drawStage(stageIdx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#22c55e', '#a78bfa'];
+      const labels = ['混乱', '去重', '删减', '简化', '分离'];
 
-    function updateStage() {
-      const stage = stages[currentStage];
-      document.getElementById('stage-title').textContent = stage.title;
-      document.getElementById('stage-desc').textContent = stage.desc;
+      // 画5个方块代表5个阶段
+      for (let i = 0; i < 5; i++) {
+        const x = 40 + i * 155;
+        const y = 80;
+        const w = 130;
+        const h = 160;
 
-      // Update dots
-      for (let i = 0; i < stages.length; i++) {
-        const d = document.getElementById('dot-' + i);
-        d.className = 'stage-dot';
-        if (i < currentStage) d.classList.add('done');
-        if (i === currentStage) d.classList.add('active');
+        // 方块背景
+        ctx.fillStyle = i <= stageIdx ? colors[i] + '22' : '#18181b';
+        ctx.strokeStyle = i === stageIdx ? colors[i] : '#27272a';
+        ctx.lineWidth = i === stageIdx ? 2.5 : 1;
+        ctx.fillRect(x, y, w, h);
+        ctx.strokeRect(x, y, w, h);
+
+        // 阶段编号圆
+        ctx.beginPath();
+        ctx.arc(x + w / 2, y - 20, 16, 0, Math.PI * 2);
+        ctx.fillStyle = i <= stageIdx ? colors[i] : '#27272a';
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 14px system-ui';
+        ctx.textAlign = 'center';
+        ctx.fillText(String(i + 1), x + w / 2, y - 15);
+
+        // 标签
+        ctx.fillStyle = i <= stageIdx ? '#e4e4e7' : '#71717a';
+        ctx.font = '13px system-ui';
+        ctx.fillText(labels[i], x + w / 2, y + h / 2 + 5);
+
+        // 连接线
+        if (i < 4) {
+          ctx.beginPath();
+          ctx.moveTo(x + w + 5, y + h / 2);
+          ctx.lineTo(x + w + 20, y + h / 2);
+          ctx.strokeStyle = i < stageIdx ? colors[i] : '#27272a';
+          ctx.stroke();
+        }
       }
 
-      // Update buttons
-      document.getElementById('btn-prev').disabled = currentStage === 0;
-      document.getElementById('btn-next').disabled = currentStage === stages.length - 1;
+      // 进度条
+      ctx.fillStyle = '#27272a';
+      ctx.fillRect(40, 280, 720, 6);
+      ctx.fillStyle = '#3b82f6';
+      ctx.fillRect(40, 280, 720 * (stageIdx + 1) / 5, 6);
+      ctx.fillStyle = '#a1a1aa';
+      ctx.font = '12px system-ui';
+      ctx.textAlign = 'left';
+      ctx.fillText('重构进度：' + (stageIdx + 1) + ' / 5', 40, 310);
     }
 
-    // P5 sketch
-    const sketch = function(p) {
-      let blockElements = [];
+    function setStage(idx) {
+      currentStage = idx;
+      const s = stages[idx];
+      document.getElementById('stage-title').textContent = s.title;
+      document.getElementById('stage-desc').textContent = s.desc;
+      document.getElementById('stage-code').textContent = s.code;
+      drawStage(idx);
 
-      p.setup = function() {
-        const canvas = p.createCanvas(800, 600);
-        canvas.parent('canvas-container');
-        p.frameRate(30);
-      };
-
-      p.draw = function() {
-        p.background(10, 10, 15);
-        const stage = stages[currentStage];
-        drawBlocks(p, stage);
-        drawArrows(p, stage);
-      };
-
-      function drawBlocks(p, stage) {
-        stage.blocks.forEach((b, i) => {
-          // Animate entrance
-          const progress = p.min(1, (p.frameCount / 30) - i * 0.3);
-          const scale = p.constrain(progress, 0, 1);
-          const w = b.w * scale;
-          const h = b.h * scale;
-          const x = b.x + (b.w - w) / 2;
-          const y = b.y + (b.h - h) / 2;
-
-          p.push();
-          p.noStroke();
-          // Glow effect
-          p.fill(b.color.charAt(0) === '#' ? p.lerpColor(p.color('#00000000'), p.color(b.color), 0.3) : b.color);
-          const alpha = p.lerp(50, 200, progress);
-          p.fill(p.color(b.color).levels[0], p.color(b.color).levels[1], p.color(b.color).levels[2], alpha * 0.3);
-          p.rect(x - 4, y - 4, w + 8, h + 8, 12);
-
-          // Main block
-          p.fill(p.color(b.color).levels[0], p.color(b.color).levels[1], p.color(b.color).levels[2], alpha);
-          p.rect(x, y, w, h, 8);
-          p.pop();
-
-          // Text
-          if (scale > 0.5) {
-            const textAlpha = p.lerp(0, 255, (progress - 0.5) * 2);
-            p.fill(255, 255, 255, textAlpha);
-            p.textAlign(p.CENTER, p.CENTER);
-            p.textSize(13);
-            p.textStyle(p.BOLD);
-            // Split text by newline
-            const lines = b.text.split('\n');
-            const lineH = 18;
-            lines.forEach((line, li) => {
-              p.text(line, x + w/2, y + h/2 - (lines.length-1)*lineH/2 + li*lineH);
-            });
-
-            if (b.sub) {
-              p.textSize(10);
-              p.fill(200, 200, 200, textAlpha * 0.7);
-              b.sub.forEach((sub, si) => {
-                p.text(sub, x + w/2, y + h + 14 + si * 13);
-              });
-            }
-          }
-        });
-      }
-
-      function drawArrows(p, stage) {
-        if (!stage.arrows) return;
-        stage.arrows.forEach(([from, to], i) => {
-          const fromB = stage.blocks[from];
-          const toB = stage.blocks[to];
-          const startX = fromB.x + fromB.w / 2;
-          const startY = fromB.y + fromB.h;
-          const endX = toB.x + toB.w / 2;
-          const endY = toB.y;
-
-          const progress = p.min(1, (p.frameCount / 20) - i * 0.5);
-          if (progress <= 0) return;
-
-          const currEndX = p.lerp(startX, endX, progress);
-          const currEndY = p.lerp(startY, endY, progress);
-
-          p.push();
-          p.stroke(255, 255, 255, 100);
-          p.strokeWeight(2);
-          p.noFill();
-          p.line(startX, startY, currEndX, currEndY);
-
-          // Arrowhead
-          const angle = p.atan2(endY - startY, endX - startX);
-          const ax = currEndX;
-          const ay = currEndY;
-          p.triangle(
-            ax, ay,
-            ax - 8 * p.cos(angle - 0.4), ay - 8 * p.sin(angle - 0.4),
-            ax - 8 * p.cos(angle + 0.4), ay - 8 * p.sin(angle + 0.4)
-          );
-          p.pop();
-        });
-      }
-    };
-
-    new p5(sketch);
-
-    function nextStage() {
-      if (currentStage < stages.length - 1) {
-        currentStage++;
-        updateStage();
-      }
+      // 更新按钮高亮
+      document.querySelectorAll('.ctrl-btn').forEach((btn, i) => {
+        if (i < 5) btn.classList.toggle('active', i === idx);
+      });
     }
-    function prevStage() {
-      if (currentStage > 0) {
-        currentStage--;
-        updateStage();
-      }
-    }
+
     function togglePlay() {
       playing = !playing;
-      const btn = document.getElementById('btn-play');
+      const btn = document.getElementById('play-btn');
       btn.textContent = playing ? '⏸ 暂停' : '▶ 自动播放';
-      btn.classList.toggle('active', playing);
       if (playing) {
         playTimer = setInterval(() => {
-          if (currentStage < stages.length - 1) {
-            currentStage++;
-            updateStage();
-          } else {
-            togglePlay();
-          }
+          currentStage = (currentStage + 1) % 5;
+          setStage(currentStage);
         }, 3000);
       } else {
         clearInterval(playTimer);
       }
     }
 
-    // Keyboard navigation
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight') nextStage();
-      if (e.key === 'ArrowLeft') prevStage();
-      if (e.key === ' ') { e.preventDefault(); togglePlay(); }
-    });
-
-    updateStage();
+    // 初始
+    setStage(0);
   </script>
 </body>
 </html>

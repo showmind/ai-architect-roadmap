@@ -5,92 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI时代的架构师养成之路</title>
   <style>
-    :root {
-      --bg: #0a0a0f;
-      --fg: #e4e4e7;
-      --accent: #3b82f6;
-      --card: #18181b;
-      --border: #27272a;
-    }
+    :root { --bg: #0a0a0f; --fg: #e4e4e7; --accent: #3b82f6; --card: #18181b; --border: #27272a; --success: #22c55e; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--fg);
-      line-height: 1.6;
-    }
-    header {
-      text-align: center;
-      padding: 60px 20px 40px;
-      border-bottom: 1px solid var(--border);
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; }
+    header { text-align: center; padding: 60px 20px 40px; border-bottom: 1px solid var(--border); }
     header h1 { font-size: 2.2rem; color: #fff; margin-bottom: 12px; }
     header p { color: #a1a1aa; font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
-    .levels {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 24px;
-      padding: 40px 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .level-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 28px;
-      transition: border-color .2s;
-    }
+
+    .levels { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; padding: 40px 20px; max-width: 1200px; margin: 0 auto; }
+    .level-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; transition: border-color .2s; }
     .level-card:hover { border-color: var(--accent); }
     .level-card h2 { font-size: 1.25rem; margin-bottom: 8px; color: #fff; }
-    .level-card .tag {
-      display: inline-block;
-      font-size: .75rem;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: rgba(59,130,246,.15);
-      color: var(--accent);
-      margin-bottom: 16px;
-    }
+    .level-card .tag { display: inline-block; font-size: .75rem; padding: 2px 8px; border-radius: 999px; background: rgba(59,130,246,.15); color: var(--accent); margin-bottom: 16px; }
     .level-card ul { list-style: none; }
-    .level-card li {
-      padding: 8px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: .9rem;
-      color: #d4d4d8;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .level-card li { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: .9rem; color: #d4d4d8; display: flex; align-items: center; gap: 8px; }
     .level-card li:last-child { border-bottom: none; }
-    .level-card li::before {
-      content: "▸";
-      color: var(--accent);
-      font-size: .8rem;
-    }
-    .cta {
-      text-align: center;
-      padding: 40px 20px 60px;
-    }
-    .cta a {
-      display: inline-block;
-      padding: 12px 32px;
-      background: var(--accent);
-      color: #fff;
-      text-decoration: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 500;
-      transition: background .2s;
-    }
+    .level-card li::before { content: "▸"; color: var(--accent); font-size: .8rem; }
+
+    .ku-section { max-width: 1200px; margin: 0 auto; padding: 20px 20px 40px; }
+    .ku-section h2 { font-size: 1.3rem; color: #fff; margin-bottom: 16px; padding-left: 12px; border-left: 3px solid var(--accent); }
+    .ku-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .ku-card { display: block; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; text-decoration: none; color: inherit; transition: border-color .2s, transform .2s; }
+    .ku-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .ku-card h3 { font-size: 1rem; color: #fff; margin-bottom: 4px; }
+    .ku-card p { font-size: .82rem; color: #a1a1aa; margin-bottom: 10px; }
+    .ku-card .ku-meta { display: flex; gap: 8px; font-size: .7rem; }
+    .ku-card .ku-tag { padding: 2px 8px; border-radius: 999px; }
+    .ku-tag.done { background: rgba(34,197,94,.15); color: #4ade80; }
+    .ku-tag.pending { background: rgba(245,158,11,.12); color: #fbbf24; }
+
+    .cta { text-align: center; padding: 40px 20px 60px; }
+    .cta a { display: inline-block; padding: 12px 32px; background: var(--accent); color: #fff; text-decoration: none; border-radius: 8px; font-size: 1rem; font-weight: 500; transition: background .2s; }
     .cta a:hover { background: #2563eb; }
-    footer {
-      text-align: center;
-      padding: 20px;
-      color: #52525b;
-      font-size: .85rem;
-      border-top: 1px solid var(--border);
-    }
+    footer { text-align: center; padding: 20px; color: #52525b; font-size: .85rem; border-top: 1px solid var(--border); }
   </style>
 </head>
 <body>
@@ -104,10 +51,11 @@
       <h2>Level 1 · 架构师基石</h2>
       <span class="tag">0-2年经验</span>
       <ul>
-        <li>23种设计模式精选与架构应用</li>
+        <li>设计模式精选与架构应用</li>
         <li>编码规范与 SOLID 原则</li>
         <li>数据结构工程实践</li>
-        <li>架构思维四原则（DRY/YAGNI/KISS/分离关注点）</li>
+        <li>架构思维四原则</li>
+        <li>代码复用与模块化设计</li>
       </ul>
     </div>
     <div class="level-card">
@@ -132,12 +80,52 @@
     </div>
   </section>
 
+  <section class="ku-section">
+    <h2>📚 Level 1 · 已完成</h2>
+    <div class="ku-grid">
+      <a class="ku-card" href="./units/L1/L1-KU04/index.html">
+        <h3>🏗️ 架构思维入门</h3>
+        <p>DRY、YAGNI、KISS、分离关注点 — 四个贯穿架构生涯的思维原则</p>
+        <div class="ku-meta"><span class="ku-tag done">✅ 已完成</span><span class="ku-tag">互动网页 + 动画 + 测验</span></div>
+      </a>
+      <a class="ku-card" href="./units/L1/L1-KU02/index.html">
+        <h3>📐 SOLID 原则</h3>
+        <p>单一职责、开闭、里氏替换、接口隔离、依赖倒置</p>
+        <div class="ku-meta"><span class="ku-tag done">✅ 已完成</span><span class="ku-tag">互动网页 + 动画 + 测验</span></div>
+      </a>
+      <a class="ku-card" href="./units/L1/L1-KU01/index.html">
+        <h3>🎨 设计模式精选</h3>
+        <p>10种最常用于架构的设计模式详解</p>
+        <div class="ku-meta"><span class="ku-tag done">✅ 已完成</span><span class="ku-tag">互动网页 + 动画 + 测验</span></div>
+      </a>
+      <a class="ku-card" href="./units/L1/L1-KU03/index.html">
+        <h3>🧮 数据结构与算法</h3>
+        <p>HashMap、跳表、B+树、布隆过滤器、一致性哈希</p>
+        <div class="ku-meta"><span class="ku-tag done">✅ 已完成</span><span class="ku-tag">互动网页 + 动画 + 测验</span></div>
+      </a>
+      <a class="ku-card" href="./units/L1/L1-KU05/index.html">
+        <h3>🔧 代码复用与模块化</h3>
+        <p>组合优于继承、高内聚低耦合、接口隔离</p>
+        <div class="ku-meta"><span class="ku-tag done">✅ 已完成</span><span class="ku-tag">互动网页 + 动画 + 测验</span></div>
+      </a>
+    </div>
+  </section>
+
+  <section class="ku-section">
+    <h2>📚 Level 2 · 已完成</h2>
+    <div class="ku-grid">
+      <a class="ku-card" href="./units/L2/L2-KU01/index.html">
+        <h3>⚖️ CAP 定理与 BASE 理论</h3>
+        <p>分布式系统设计的核心权衡 — 一致性、可用性、分区容错</p>
+        <div class="ku-meta"><span class="ku-tag done">✅ 已完成</span><span class="ku-tag">互动网页 + 动画 + 测验</span></div>
+      </a>
+    </div>
+  </section>
+
   <section class="cta">
     <a href="./MASTER_PLAN.md">📋 查看完整知识大纲</a>
   </section>
 
-  <footer>
-    Hermes-orchestrated · Free AI Agents Collaboration · MIT License
-  </footer>
+  <footer>Hermes-orchestrated · OpenCode · CodeBuddy · MIT License</footer>
 </body>
 </html>
