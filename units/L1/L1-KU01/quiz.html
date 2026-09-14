@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L1-KU01 · 设计模式测验</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --card-bg: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --success: #3fb950;
+    --danger: #f85149;
+    --warning: #d29922;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    line-height: 1.6;
+  }
+  .container { max-width: 720px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 2rem; }
+  header h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+  header h1 span { color: var(--accent); }
+  header p { color: var(--text-muted); }
+  .progress-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.3s;
+    width: 0%;
+  }
+  .question-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: border-color 0.3s;
+  }
+  .question-card.correct { border-color: var(--success); }
+  .question-card.wrong { border-color: var(--danger); }
+  .question-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .q-num {
+    background: var(--accent);
+    color: #fff;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .q-text { font-size: 1rem; font-weight: 500; }
+  .options { display: flex; flex-direction: column; gap: 0.5rem; }
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+  }
+  .option:hover { border-color: var(--accent); background: rgba(88,166,255,0.05); }
+  .option.selected { border-color: var(--accent); background: rgba(88,166,255,0.1); }
+  .option.correct { border-color: var(--success); background: rgba(63,185,80,0.1); }
+  .option.wrong { border-color: var(--danger); background: rgba(248,81,73,0.1); }
+  .option.disabled { pointer-events: none; opacity: 0.7; }
+  .option-marker {
+    width: 20px; height: 20px;
+    border: 2px solid var(--text-muted);
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem;
+  }
+  .option.selected .option-marker { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .option.correct .option-marker { border-color: var(--success); background: var(--success); color: #fff; }
+  .option.wrong .option-marker { border-color: var(--danger); background: var(--danger); color: #fff; }
+  .feedback {
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback.correct { background: rgba(63,185,80,0.1); color: var(--success); border: 1px solid rgba(63,185,80,0.3); }
+  .feedback.wrong { background: rgba(248,81,73,0.1); color: var(--danger); border: 1px solid rgba(248,81,73,0.3); }
+  .result {
+    text-align: center;
+    padding: 2rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: none;
+  }
+  .result.show { display: block; }
+  .result h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+  .result .score { font-size: 3rem; font-weight: 700; margin: 1rem 0; }
+  .result .score.pass { color: var(--success); }
+  .result .score.fail { color: var(--danger); }
+  .btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 1rem;
+    transition: background 0.2s;
+  }
+  .btn:hover { background: #4393e6; }
+  footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>L1-KU01 · <span>设计模式测验</span></h1>
+    <p>5道场景题，即时判分，检验你的理解</p>
+  </header>
+
+  <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+  <div id="quiz-container"></div>
+
+  <div class="result" id="result">
+    <h2>测验完成！</h2>
+    <div class="score" id="score"></div>
+    <p id="score-desc"></p>
+    <button class="btn" onclick="restart()">重新测验</button>
+  </div>
+
+  <footer>
+    参考来源：《Head First 设计模式》Eric Freeman · 《设计模式》GoF · javabetter.cn 设计模式系列 ·
+    <a href="index.html">返回首页</a>
+  </footer>
+</div>
+
+<script>
+const questions = [
+  {
+    q: '以下哪个场景最适合使用观察者模式（Observer）？',
+    options: [
+      '需要保证全局只有一个数据库连接',
+      '一个事件发生后需要通知多个订阅者（短信、邮件、日志）',
+      '需要将一个接口转换为另一个接口',
+      '需要分步骤创建一个复杂对象'
+    ],
+    answer: 1,
+    explanation: '观察者模式的核心是"一对多依赖"——当一个对象状态改变时，所有依赖者自动收到通知。事件驱动、发布-订阅系统是最典型的应用场景。'
+  },
+  {
+    q: '你在开发一个支付系统，需要支持支付宝、微信、银行卡等多种支付方式，且未来会不断新增。最佳做法是？',
+    options: [
+      '使用 if-else 判断支付方式，每种方式写对应逻辑',
+      '使用策略模式（Strategy），将每种支付方式封装为独立策略类',
+      '使用单例模式（Singleton），只创建一个支付实例',
+      '使用外观模式（Facade），封装所有支付逻辑'
+    ],
+    answer: 1,
+    explanation: '策略模式定义一系列算法并封装，可相互替换。新增支付方式只需添加新策略类，无需修改已有代码（符合OCP）。if-else 会导致方法膨胀且违反开闭原则。'
+  },
+  {
+    q: '以下哪个是装饰器模式（Decorator）的典型应用？',
+    options: [
+      'Java IO 中的 BufferedReader 包装 FileReader',
+      'Spring 框架中的 BeanFactory 创建对象',
+      'JDK 中的 Comparator 比较两个对象',
+      'Spring MVC 中的 DispatcherServlet'
+    ],
+    answer: 0,
+    explanation: 'Java IO 的流体系是装饰器模式的经典应用：BufferedReader 装饰 FileReader，添加缓冲功能。层层包裹可以动态组合功能。Spring BeanFactory 是工厂模式，Comparator 是策略模式。'
+  },
+  {
+    q: '适配器模式（Adapter）与外观模式（Facade）的主要区别是？',
+    options: [
+      '适配器封装算法，外观封装创建逻辑',
+      '适配器转换接口使不兼容类协同工作，外观为子系统提供统一简化接口',
+      '适配器控制对象访问，外观动态添加职责',
+      '它们是完全相同的模式，只是名称不同'
+    ],
+    answer: 1,
+    explanation: '适配器解决"接口不兼容"问题（转换接口），外观解决"子系统太复杂"问题（简化接口）。适配器是"翻译官"，外观是"前台"。'
+  },
+  {
+    q: '模板方法模式（Template Method）体现了哪个设计原则？',
+    options: [
+      '单一职责原则（SRP）',
+      '开闭原则（OCP）',
+      '依赖反转原则（DIP）——"好莱坞原则"：别调用我们，我们会调用你',
+      '接口隔离原则（ISP）'
+    ],
+    answer: 2,
+    explanation: '模板方法定义算法骨架，子类填充细节。父类调用子类方法，而不是子类调用父类——这就是"好莱坞原则"（Don\'t call us, we\'ll call you），体现了依赖反转原则：高层模块定义骨架，低层模块实现细节。'
+  }
+];
+
+let answered = [false, false, false, false, false];
+let correctCount = 0;
+
+function renderQuiz() {
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = '';
+
+  questions.forEach((q, qi) => {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = 'card-' + qi;
+
+    let optionsHtml = '';
+    q.options.forEach((opt, oi) => {
+      optionsHtml += '<div class="option" onclick="select(' + qi + ', ' + oi + ')" data-qi="' + qi + '" data-oi="' + oi + '">' +
+        '<span class="option-marker">' + String.fromCharCode(65 + oi) + '</span>' +
+        '<span>' + opt + '</span></div>';
+    });
+
+    card.innerHTML =
+      '<div class="question-header">' +
+        '<span class="q-num">' + (qi + 1) + '</span>' +
+        '<span class="q-text">' + q.q + '</span>' +
+      '</div>' +
+      '<div class="options">' + optionsHtml + '</div>' +
+      '<div class="feedback" id="feedback-' + qi + '"></div>';
+
+    container.appendChild(card);
+  });
+}
+
+function select(qi, oi) {
+  if (answered[qi]) return;
+  answered[qi] = true;
+
+  const card = document.getElementById('card-' + qi);
+  const options = card.querySelectorAll('.option');
+  const feedback = document.getElementById('feedback-' + qi);
+
+  options.forEach((opt, idx) => {
+    opt.classList.add('disabled');
+    if (idx === questions[qi].answer) {
+      opt.classList.add('correct');
+    } else if (idx === oi && oi !== questions[qi].answer) {
+      opt.classList.add('wrong');
+    }
+  });
+
+  if (oi === questions[qi].answer) {
+    card.classList.add('correct');
+    feedback.className = 'feedback show correct';
+    feedback.textContent = '✅ 正确！' + questions[qi].explanation;
+    correctCount++;
+  } else {
+    card.classList.add('wrong');
+    feedback.className = 'feedback show wrong';
+    feedback.textContent = '❌ 错误。' + questions[qi].explanation;
+  }
+
+  updateProgress();
+  checkComplete();
+}
+
+function updateProgress() {
+  const pct = (answered.filter(a => a).length / questions.length) * 100;
+  document.getElementById('progress').style.width = pct + '%';
+}
+
+function checkComplete() {
+  if (answered.every(a => a)) {
+    setTimeout(showResult, 500);
+  }
+}
+
+function showResult() {
+  document.getElementById('quiz-container').style.display = 'none';
+  document.getElementById('progress').style.display = 'none';
+
+  const result = document.getElementById('result');
+  result.classList.add('show');
+
+  const scoreEl = document.getElementById('score');
+  scoreEl.textContent = correctCount + ' / ' + questions.length;
+  scoreEl.className = 'score ' + (correctCount >= 4 ? 'pass' : 'fail');
+
+  const desc = document.getElementById('score-desc');
+  if (correctCount === 5) {
+    desc.textContent = '🎉 完美！你已经掌握设计模式的核心应用场景！';
+  } else if (correctCount >= 4) {
+    desc.textContent = '👍 优秀！你对设计模式有很好的理解。';
+  } else if (correctCount >= 3) {
+    desc.textContent = '💪 不错！继续巩固，你会更上一层楼。';
+  } else {
+    desc.textContent = '📚 建议回顾学习材料，加深理解后再来挑战。';
+  }
+}
+
+function restart() {
+  answered = [false, false, false, false, false];
+  correctCount = 0;
+  document.getElementById('quiz-container').style.display = 'block';
+  document.getElementById('progress').style.display = 'block';
+  document.getElementById('progress').style.width = '0%';
+  document.getElementById('result').classList.remove('show');
+  renderQuiz();
+}
+
+renderQuiz();
+</script>
+</body>
+</html>
