@@ -1,0 +1,15 @@
+{
+  "id": "L1-KU03",
+  "title": "数据结构与算法工程应用",
+  "level": "L1",
+  "tags": ["数据结构", "算法", "HashMap", "跳表", "B+树", "布隆过滤器", "一致性哈希", "Redis", "MySQL"],
+  "difficulty": "beginner",
+  "duration": "25min",
+  "description": "掌握架构中最常用的数据结构与算法：HashMap、跳表、B+树、布隆过滤器、一致性哈希。理解每种结构的原理、时间复杂度、在 Redis/MySQL 等真实系统中的底层应用，以及高频面试考点。",
+  "references": [
+    {"title": "《算法导论》", "author": "Cormen et al."},
+    {"title": "Redis 设计与实现", "author": "黄健宏"},
+    {"title": "javabetter.cn 数据结构系列", "url": "https://javabetter.cn/sidebar/sanfene/shujujiegou.html"}
+  ],
+  "deliverables": ["index.html", "animation.html", "quiz.html", "diagram.svg", "meta.json"]
+}

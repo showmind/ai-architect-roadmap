@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L1-KU03 · 一致性哈希动画演示</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 1rem;
+  }
+  h1 { font-size: 1.5rem; margin-bottom: 0.4rem; }
+  h1 span { color: #f85149; }
+  .subtitle { color: #8b949e; font-size: 0.9rem; margin-bottom: 1rem; text-align: center; }
+  #canvas-container {
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  canvas { display: block; }
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .btn {
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #e6edf3;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+  .btn:hover { background: #30363d; border-color: #f85149; }
+  .btn.active { background: #da3633; border-color: #f85149; }
+  .info {
+    max-width: 660px;
+    text-align: center;
+    padding: 1rem 1.2rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    min-height: 92px;
+  }
+  .info h3 { font-size: 1rem; margin-bottom: 0.4rem; }
+  .info p { color: #8b949e; font-size: 0.85rem; line-height: 1.55; }
+  .migrate-stat { color: #f85149; font-weight: 600; }
+  .stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 0.6rem;
+    justify-content: center;
+    font-size: 0.82rem;
+    color: #8b949e;
+  }
+  .stats b { color: #e6edf3; }
+  footer {
+    margin-top: 1.5rem;
+    color: #8b949e;
+    font-size: 0.75rem;
+    text-align: center;
+    max-width: 660px;
+  }
+  footer a { color: #f85149; text-decoration: none; }
+</style>
+</head>
+<body>
+<h1>L1-KU03 · <span>一致性哈希动画</span></h1>
+<p class="subtitle">观察「节点增减」时，只有环上相邻的一小段数据需要迁移（虚拟节点保证负载均衡）</p>
+
+<div id="canvas-container"></div>
+
+<div class="controls">
+  <button class="btn active" id="btn-0" onclick="goTo(0)">场景1 · 3节点</button>
+  <button class="btn" id="btn-1" onclick="goTo(1)">场景2 · 新增节点D</button>
+  <button class="btn" id="btn-2" onclick="goTo(2)">场景3 · 移除节点B</button>
+  <button class="btn" id="btn-auto" onclick="toggleAuto()">⏸ 暂停自动播放</button>
+  <button class="btn" onclick="resetAll()">↺ 重置</button>
+</div>
+
+<div class="info" id="info">
+  <h3>点击场景按钮 或 等待自动播放</h3>
+  <p>每个场景展示不同拓扑下，数据 key 在哈希环上的归属与迁移情况。</p>
+</div>
+<div class="stats">
+  <div>物理节点：<b id="stat-nodes">3</b></div>
+  <div>数据 key：<b id="stat-keys">14</b></div>
+  <div>本次迁移：<b class="migrate-stat" id="stat-mig">0</b> / 14</div>
+</div>
+
+<footer>
+  参考来源：《Redis 设计与实现》黄健宏 · 《算法导论》Cormen et al. · javabetter.cn 数据结构系列 ·
+  <a href="index.html">返回首页</a>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+<script>
+// ============ 一致性哈希动画核心逻辑 ============
+
+// 物理节点定义（含颜色）
+const NODES = {
+  A: { color: '#58a6ff', label: 'Node A' },
+  B: { color: '#3fb950', label: 'Node B' },
+  C: { color: '#a371f7', label: 'Node C' },
+  D: { color: '#d29922', label: 'Node D' }
+};
+const VNODES_PER = 5;   // 每个物理节点的虚拟节点数
+const KEY_COUNT = 14;   // 模拟数据 key 数量
+
+// 三种拓扑场景
+const TOPOS = [
+  { name: '3节点 (A/B/C)', nodes: ['A', 'B', 'C'] },
+  { name: '新增节点D (A/B/C/D)', nodes: ['A', 'B', 'C', 'D'] },
+  { name: '移除节点B (A/C)', nodes: ['A', 'C'] }
+];
+const BASELINE = ['A', 'B', 'C']; // 用于对比「迁移量」的基准拓扑
+
+let currentTopo = 0;
+let autoPlay = true;
+let autoTimer = 0;
+let pulse = 0;          // 用于迁移闪烁动画
+
+// 简单字符串哈希 → [0,1)
+function hash01(str) {
+  let h = 2166136261 >>> 0; // FNV 起点
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  // 归一化到 [0,1)
+  return (h % 100000) / 100000;
+}
+
+// 生成数据 key 及其环上位置
+const dataKeys = [];
+for (let i = 0; i < KEY_COUNT; i++) {
+  const k = 'key' + (i + 1);
+  dataKeys.push({ name: k, pos: hash01(k) });
+}
+
+// 用大圆（32位空间离散化）避免浮点边界问题：用 0..1 区间
+// 根据节点列表，生成所有虚拟节点位置并排序
+function buildRing(nodeList) {
+  const vnodes = [];
+  nodeList.forEach(phys => {
+    for (let v = 0; v < VNODES_PER; v++) {
+      const pos = hash01(phys + '#' + v);
+      vnodes.push({ pos, phys });
+    }
+  });
+  vnodes.sort((a, b) => a.pos - b.pos);
+  return vnodes;
+}
+
+// 顺时针找到 key 所属的物理节点
+function ownerOf(pos, vnodes) {
+  for (let i = 0; i < vnodes.length; i++) {
+    if (vnodes[i].pos >= pos) return vnodes[i].phys;
+  }
+  return vnodes[0].phys; // 绕回起点
+}
+
+function setup() {
+  const cnv = createCanvas(640, 440);
+  cnv.parent('canvas-container');
+  updateInfo();
+  updateStats();
+}
+
+function draw() {
+  background(13, 17, 23);
+  pulse += 0.08;
+
+  const cx = width / 2, cy = height / 2 + 10, R = 165;
+
+  const topo = TOPOS[currentTopo];
+  const vnodes = buildRing(topo.nodes);
+  const baseRing = buildRing(BASELINE);
+
+  // 1) 画哈希环
+  noFill();
+  stroke(48, 54, 61);
+  strokeWeight(2);
+  ellipse(cx, cy, R * 2);
+
+  // 环上刻度（虚拟节点位置）
+  vnodes.forEach(vn => {
+    const a = vn.pos * TWO_PI - HALF_PI;
+    const x = cx + cos(a) * R;
+    const y = cy + sin(a) * R;
+    stroke(NODES[vn.phys].color);
+    strokeWeight(3);
+    point(x, y);
+    // 虚拟节点小点
+    fill(NODES[vn.phys].color);
+    noStroke();
+    ellipse(x, y, 6);
+  });
+
+  // 2) 物理节点标签
+  topo.nodes.forEach((phys, i) => {
+    const a = (i / topo.nodes.length) * TWO_PI - HALF_PI;
+    const x = cx + cos(a) * (R + 28);
+    const y = cy + sin(a) * (R + 28);
+    fill(NODES[phys].color);
+    noStroke();
+    textAlign(CENTER, CENTER);
+    textSize(13);
+    text(NODES[phys].label, x, y);
+  });
+
+  // 3) 数据 key 及其归属
+  let migrated = 0;
+  dataKeys.forEach(dk => {
+    const baseOwner = ownerOf(dk.pos, baseRing);
+    const owner = ownerOf(dk.pos, vnodes);
+    const isMigrated = (currentTopo !== 0) && (owner !== baseOwner);
+    if (isMigrated) migrated++;
+
+    const a = dk.pos * TWO_PI - HALF_PI;
+    // key 画在环内一点
+    const kr = R * 0.78;
+    const x = cx + cos(a) * kr;
+    const y = cy + sin(a) * kr;
+
+    if (isMigrated) {
+      // 迁移中的 key：白圈闪烁 + 从旧位置指向新归属
+      const pr = (sin(pulse) * 0.5 + 0.5);
+      noFill();
+      stroke(255, 255, 255, 120 + pr * 120);
+      strokeWeight(2 + pr * 1.5);
+      ellipse(x, y, 16 + pr * 6);
+      fill(255);
+      noStroke();
+      textSize(8);
+      textAlign(CENTER, CENTER);
+      text(dk.name, x, y - 14);
+    } else {
+      fill(NODES[owner].color);
+      noStroke();
+      ellipse(x, y, 9);
+    }
+  });
+
+  // 更新迁移统计（仅场景切换时更准确，这里每帧轻量更新）
+  document.getElementById('stat-mig').textContent = migrated;
+  document.getElementById('stat-nodes').textContent = topo.nodes.length;
+
+  // 4) 自动播放推进
+  if (autoPlay) {
+    autoTimer++;
+    if (autoTimer > 200) {
+      autoTimer = 0;
+      goTo((currentTopo + 1) % TOPOS.length);
+    }
+  }
+
+  // 文档标题随场景变化（避免每帧重设，简单处理）
+  updateInfoIfChanged();
+}
+
+// 仅在场景变化时刷新信息面板（用闭包记住上次）
+let lastTopo = -1;
+function updateInfoIfChanged() {
+  if (lastTopo !== currentTopo) {
+    lastTopo = currentTopo;
+    updateInfo();
+    updateStats();
+  }
+}
+
+function goTo(n) {
+  currentTopo = n;
+  autoTimer = 0;
+  // 同步按钮高亮（场景按钮）
+  for (let i = 0; i < 3; i++) {
+    const b = document.getElementById('btn-' + i);
+    if (b) b.classList.toggle('active', i === n);
+  }
+  updateInfo();
+  updateStats();
+}
+
+function updateInfo() {
+  const t = TOPOS[currentTopo];
+  let desc = '';
+  if (currentTopo === 0) {
+    desc = '基础拓扑：3 个物理节点（A/B/C），每个节点映射 ' + VNODES_PER + ' 个虚拟节点均匀散布在环上。14 个数据 key 顺时针归属最近的虚拟节点。';
+  } else if (currentTopo === 1) {
+    desc = '新增节点 <b style="color:#d29922">D</b>：D 的虚拟节点插入环后，<b>只有原本属于相邻区间的少量 key 迁移到 D</b>，其余 key 归属不变——这正是普通取模哈希做不到的。';
+  } else {
+    desc = '移除节点 <b style="color:#3fb950">B</b>：B 下线后，<b>仅 B 区间内的 key 顺时针迁移到下一个节点（A 或 C）</b>，全量数据无需重分布，系统抖动最小。';
+  }
+  document.getElementById('info').innerHTML =
+    '<h3 style="color:#f85149">' + t.name + '</h3><p>' + desc + '</p>';
+}
+
+function updateStats() {
+  document.getElementById('stat-nodes').textContent = TOPOS[currentTopo].nodes.length;
+  document.getElementById('stat-keys').textContent = KEY_COUNT;
+  // 计算相对基准的迁移数
+  const vnodes = buildRing(TOPOS[currentTopo].nodes);
+  const baseRing = buildRing(BASELINE);
+  let m = 0;
+  dataKeys.forEach(dk => {
+    if (currentTopo !== 0 && ownerOf(dk.pos, vnodes) !== ownerOf(dk.pos, baseRing)) m++;
+  });
+  document.getElementById('stat-mig').textContent = m;
+}
+
+function toggleAuto() {
+  autoPlay = !autoPlay;
+  document.getElementById('btn-auto').textContent = autoPlay ? '⏸ 暂停自动播放' : '▶ 开始自动播放';
+  document.getElementById('btn-auto').classList.toggle('active', autoPlay);
+}
+
+function resetAll() {
+  autoTimer = 0;
+  goTo(0);
+  if (!autoPlay) toggleAuto();
+}
+</script>
+</body>
+</html>
