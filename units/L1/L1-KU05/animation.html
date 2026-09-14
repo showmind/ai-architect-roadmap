@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>紧耦合拆分动画 — 代码复用与模块化设计</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --fg: #e4e4e7;
+      --accent: #3b82f6;
+      --card: #18181b;
+      --border: #27272a;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+    }
+    header {
+      text-align: center;
+      padding: 30px 20px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 { font-size: 1.5rem; color: #fff; }
+    header p { color: #a1a1aa; font-size: .9rem; }
+
+    #canvas-container {
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .controls {
+      text-align: center;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .controls button {
+      padding: 10px 24px;
+      border: 1px solid var(--accent);
+      background: transparent;
+      color: var(--accent);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: .9rem;
+      transition: background .2s, color .2s;
+    }
+    .controls button:hover, .controls button.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    .controls button:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    .stage-info {
+      max-width: 800px;
+      margin: 0 auto 20px;
+      padding: 0 20px;
+      text-align: center;
+    }
+    .stage-title {
+      font-size: 1.2rem;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .stage-desc {
+      font-size: .9rem;
+      color: #a1a1aa;
+      line-height: 1.7;
+    }
+
+    .code-comparison {
+      max-width: 800px;
+      margin: 0 auto 20px;
+      padding: 0 20px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .code-block {
+      flex: 1;
+      min-width: 280px;
+      background: #111;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: "Fira Code", "Consolas", monospace;
+      font-size: .78rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: #d4d4d8;
+    }
+    .code-block .label {
+      font-family: -apple-system, sans-serif;
+      font-size: .75rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .code-block .label.bad { color: var(--danger); }
+    .code-block .label.good { color: var(--success); }
+
+    .stage-indicators {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 20px 20px;
+      flex-wrap: wrap;
+    }
+    .stage-dot {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .8rem;
+      font-weight: 600;
+      border: 2px solid var(--border);
+      color: #52525b;
+      transition: all .3s;
+    }
+    .stage-dot.active { border-color: var(--accent); color: var(--accent); background: rgba(59,130,246,.15); }
+    .stage-dot.done { border-color: var(--success); color: var(--success); background: rgba(34,197,94,.15); }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #52525b;
+      font-size: .85rem;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🔄 紧耦合 → 高内聚低耦合</h1>
+    <p>5个阶段，见证一个混沌类如何逐步拆分为清晰模块</p>
+  </header>
+
+  <div class="stage-info">
+    <div class="stage-title" id="stage-title">阶段 1：紧耦合的泥球</div>
+    <div class="stage-desc" id="stage-desc">所有逻辑混杂在一个类中。数据、验证、计算、存储、输出全耦合在一起，无法独立测试和替换。</div>
+  </div>
+
+  <!-- Code comparison -->
+  <div class="code-comparison" id="code-comparison">
+    <div class="code-block">
+      <span class="label bad">❌ 重构前</span>
+      <pre id="code-before"></pre>
+    </div>
+    <div class="code-block">
+      <span class="label good">✅ 重构后</span>
+      <pre id="code-after"></pre>
+    </div>
+  </div>
+
+  <!-- Stage dots -->
+  <div class="stage-indicators" id="stage-dots"></div>
+
+  <!-- Canvas -->
+  <div id="canvas-container"></div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button id="btn-prev" onclick="prevStage()">← 上一阶段</button>
+    <button id="btn-play" onclick="togglePlay()">▶ 自动播放</button>
+    <button id="btn-next" onclick="nextStage()">下一阶段 →</button>
+  </div>
+
+  <footer>
+    Referenced: 《企业应用架构模式》Martin Fowler · Referenced: 《架构整洁之道》Robert C. Martin
+  </footer>
+
+  <script>
+    let currentStage = 0;
+    let playing = false;
+    let playTimer = null;
+
+    const stages = [
+      {
+        title: "阶段 1：紧耦合的泥球",
+        desc: "所有逻辑混杂在一个类中：数据读取、验证、计算、存储、输出全耦合在一起。无法独立测试，无法替换任何部分。修改一处可能影响全部。",
+        beforeCode: `class OrderService {\n  void process(data) {\n    // 验证\n    if (!data.valid) return;\n    // 计算\n    let total = data.items.price * qty;\n    // 存储\n    db.save(total);\n    // 通知\n    email.send();\n    // 日志\n    log.write();\n  }\n}\n// 一个类承担所有职责`,
+        afterCode: `// 紧耦合无法拆分\n// 只能整体重构`,
+        blocks: [
+          { x: 300, y: 300, w: 200, h: 120, text: "OrderService", sub: ["验证", "计算", "存储", "通知", "日志"], color: "#ef4444" }
+        ],
+        arrows: []
+      },
+      {
+        title: "阶段 2：提取函数",
+        desc: "将大类拆分为独立函数。每个函数只做一件事。但模块间的依赖仍然混乱，函数互相引用形成网状结构。",
+        beforeCode: `class OrderService {\n  void process(data) {\n    validate(data);\n    calculate(data);\n    save(data);\n    notify(data);\n  }\n}\n// 函数已提取，但耦合仍在`,
+        afterCode: `function validate(data) { ... }\nfunction calculate(data) { ... }\nfunction save(data) { ... }\nfunction notify(data) { ... }\n// 各自独立，但main()仍强依赖`,
+        blocks: [
+          { x: 100, y: 160, w: 140, h: 70, text: "validate()", color: "#f59e0b" },
+          { x: 300, y: 160, w: 140, h: 70, text: "calculate()", color: "#f59e0b" },
+          { x: 500, y: 160, w: 140, h: 70, text: "save()", color: "#f59e0b" },
+          { x: 300, y: 320, w: 140, h: 70, text: "notify()", color: "#f59e0b" },
+          { x: 100, y: 320, w: 140, h: 70, text: "log()", color: "#f59e0b" },
+          { x: 300, y: 240, w: 140, h: 70, text: "main()", color: "#ef4444" }
+        ],
+        arrows: [[5,0],[5,1],[5,2],[5,3],[5,4]]
+      },
+      {
+        title: "阶段 3：按层分组",
+        desc: "按功能领域将函数分组为模块：数据层、业务层、展示层初步分离。模块内部高内聚，模块间通过接口通信。",
+        beforeCode: `// 所有函数平级\nfunction validate() {}  // 业务层\nfunction save() {}       // 数据层\nfunction render() {}     // 展示层`,
+        afterCode: `// 数据层\nclass DataLayer {\n  save() { ... }\n  load() { ... }\n}\n\n// 业务层\nclass BusinessLayer {\n  validate() { ... }\n  calculate() { ... }\n}\n\n// 展示层\nclass PresentationLayer {\n  render() { ... }\n}`,
+        blocks: [
+          { x: 80, y: 100, w: 220, h: 180, text: "数据层", sub: ["save()", "load()"], color: "#3b82f6" },
+          { x: 360, y: 100, w: 220, h: 180, text: "业务层", sub: ["validate()", "calculate()"], color: "#f59e0b" },
+          { x: 640, y: 100, w: 220, h: 180, text: "展示层", sub: ["render()"], color: "#22c55e" },
+          { x: 360, y: 340, w: 220, h: 60, text: "main() 编排器", color: "#ef4444" }
+        ],
+        arrows: [[3,3],[1,3],[2,3]]
+      },
+      {
+        title: "阶段 4：定义接口与依赖倒置",
+        desc: "为每个模块定义清晰的接口，通过依赖倒置降低耦合。上层模块依赖抽象而非具体实现。模块可以独立替换和测试。",
+        beforeCode: `// 模块直接依赖实现\nclass BusinessLayer {\n  private MySQLRepo repo;\n}`,
+        afterCode: `interface IRepository {\n  save(data);\n  load(id);\n}\nclass BusinessLayer {\n  private IRepository repo;\n  // 依赖抽象\n}\n// 可注入：MySQLRepo 或 MongoRepo`,
+        blocks: [
+          { x: 80, y: 100, w: 220, h: 180, text: "IRepository\ninterface", sub: ["+save()", "+load()"], color: "#3b82f6" },
+          { x: 360, y: 100, w: 220, h: 180, text: "IBusinessLogic\ninterface", sub: ["+validate()", "+calculate()"], color: "#f59e0b" },
+          { x: 640, y: 100, w: 220, h: 180, text: "IView\ninterface", sub: ["+render()"], color: "#22c55e" },
+          { x: 300, y: 340, w: 200, h: 60, text: "Container / DI", color: "#8b5cf6" },
+          { x: 80, y: 340, w: 160, h: 50, text: "MySQLRepo", color: "#6366f1" },
+          { x: 240, y: 340, w: 160, h: 50, text: "Calculator", color: "#6366f1" },
+          { x: 400, y: 340, w: 160, h: 50, text: "UIView", color: "#6366f1" }
+        ],
+        arrows: [[4,3],[5,3],[6,3],[0,3],[1,3],[2,3]]
+      },
+      {
+        title: "阶段 5：高内聚低耦合完成",
+        desc: "最终架构：清晰的层次结构。每个模块内部高度内聚，模块间通过接口松散耦合。核心逻辑可独立测试，架构稳定且可演进。",
+        beforeCode: `// 混乱的泥球架构`,
+        afterCode: `// 整洁的分层架构\n表现层 → 业务层 → 领域层 → 数据层\n通过依赖倒置连接\n核心逻辑可独立单元测试`,
+        blocks: [
+          { x: 340, y: 140, w: 120, h: 120, text: "领域模型\n(Entities)", color: "#8b5cf6" },
+          { x: 180, y: 320, w: 180, h: 90, text: "用例层\n(Use Cases)", color: "#f59e0b" },
+          { x: 420, y: 320, w: 180, h: 90, text: "接口适配器\n(Adapters)", color: "#3b82f6" },
+          { x: 120, y: 480, w: 150, h: 60, text: "框架/UI\n(Frameworks)", color: "#22c55e" },
+          { x: 340, y: 480, w: 150, h: 60, text: "数据库/外部\n(External)", color: "#ef4444" },
+          { x: 540, y: 480, w: 150, h: 60, text: "驱动层\n(Drivers)", color: "#06b6d4" }
+        ],
+        arrows: [[0,1],[0,2],[1,3],[2,4],[2,5]]
+      }
+    ];
+
+    // Build stage dots
+    const dotsContainer = document.getElementById('stage-dots');
+    stages.forEach((s, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'stage-dot';
+      dot.textContent = i + 1;
+      dot.id = 'dot-' + i;
+      dotsContainer.appendChild(dot);
+    });
+
+    // Set initial code blocks
+    document.getElementById('code-before').textContent = stages[0].beforeCode;
+    document.getElementById('code-after').textContent = stages[0].afterCode;
+
+    function updateStage() {
+      const stage = stages[currentStage];
+      document.getElementById('stage-title').textContent = stage.title;
+      document.getElementById('stage-desc').textContent = stage.desc;
+      document.getElementById('code-before').textContent = stage.beforeCode;
+      document.getElementById('code-after').textContent = stage.afterCode;
+
+      for (let i = 0; i < stages.length; i++) {
+        const d = document.getElementById('dot-' + i);
+        d.className = 'stage-dot';
+        if (i < currentStage) d.classList.add('done');
+        if (i === currentStage) d.classList.add('active');
+      }
+
+      document.getElementById('btn-prev').disabled = currentStage === 0;
+      document.getElementById('btn-next').disabled = currentStage === stages.length - 1;
+    }
+
+    // P5 sketch
+    const sketch = function(p) {
+      let blockElements = [];
+
+      p.setup = function() {
+        const canvas = p.createCanvas(800, 600);
+        canvas.parent('canvas-container');
+        p.frameRate(30);
+      };
+
+      p.draw = function() {
+        p.background(10, 10, 15);
+        const stage = stages[currentStage];
+        drawBlocks(p, stage);
+        drawArrows(p, stage);
+      };
+
+      function drawBlocks(p, stage) {
+        stage.blocks.forEach((b, i) => {
+          const progress = p.min(1, (p.frameCount / 30) - i * 0.3);
+          const scale = p.constrain(progress, 0, 1);
+          const w = b.w * scale;
+          const h = b.h * scale;
+          const x = b.x + (b.w - w) / 2;
+          const y = b.y + (b.h - h) / 2;
+
+          p.push();
+          p.noStroke();
+          const alpha = p.lerp(50, 200, progress);
+          p.fill(p.color(b.color).levels[0], p.color(b.color).levels[1], p.color(b.color).levels[2], alpha * 0.3);
+          p.rect(x - 4, y - 4, w + 8, h + 8, 12);
+
+          p.fill(p.color(b.color).levels[0], p.color(b.color).levels[1], p.color(b.color).levels[2], alpha);
+          p.rect(x, y, w, h, 8);
+          p.pop();
+
+          if (scale > 0.5) {
+            const textAlpha = p.lerp(0, 255, (progress - 0.5) * 2);
+            p.fill(255, 255, 255, textAlpha);
+            p.textAlign(p.CENTER, p.CENTER);
+            p.textSize(13);
+            p.textStyle(p.BOLD);
+            const lines = b.text.split('\n');
+            const lineH = 18;
+            lines.forEach((line, li) => {
+              p.text(line, x + w/2, y + h/2 - (lines.length-1)*lineH/2 + li*lineH);
+            });
+
+            if (b.sub) {
+              p.textSize(10);
+              p.fill(200, 200, 200, textAlpha * 0.7);
+              b.sub.forEach((sub, si) => {
+                p.text(sub, x + w/2, y + h + 14 + si * 13);
+              });
+            }
+          }
+        });
+      }
+
+      function drawArrows(p, stage) {
+        if (!stage.arrows) return;
+        stage.arrows.forEach(([from, to], i) => {
+          const fromB = stage.blocks[from];
+          const toB = stage.blocks[to];
+          const startX = fromB.x + fromB.w / 2;
+          const startY = fromB.y + fromB.h;
+          const endX = toB.x + toB.w / 2;
+          const endY = toB.y;
+
+          const progress = p.min(1, (p.frameCount / 20) - i * 0.5);
+          if (progress <= 0) return;
+
+          const currEndX = p.lerp(startX, endX, progress);
+          const currEndY = p.lerp(startY, endY, progress);
+
+          p.push();
+          p.stroke(255, 255, 255, 100);
+          p.strokeWeight(2);
+          p.noFill();
+          p.line(startX, startY, currEndX, currEndY);
+
+          const angle = p.atan2(endY - startY, endX - startX);
+          const ax = currEndX;
+          const ay = currEndY;
+          p.triangle(
+            ax, ay,
+            ax - 8 * p.cos(angle - 0.4), ay - 8 * p.sin(angle - 0.4),
+            ax - 8 * p.cos(angle + 0.4), ay - 8 * p.sin(angle + 0.4)
+          );
+          p.pop();
+        });
+      }
+    };
+
+    new p5(sketch);
+
+    function nextStage() {
+      if (currentStage < stages.length - 1) {
+        currentStage++;
+        updateStage();
+      }
+    }
+    function prevStage() {
+      if (currentStage > 0) {
+        currentStage--;
+        updateStage();
+      }
+    }
+    function togglePlay() {
+      playing = !playing;
+      const btn = document.getElementById('btn-play');
+      btn.textContent = playing ? '⏸ 暂停' : '▶ 自动播放';
+      btn.classList.toggle('active', playing);
+      if (playing) {
+        playTimer = setInterval(() => {
+          if (currentStage < stages.length - 1) {
+            currentStage++;
+            updateStage();
+          } else {
+            togglePlay();
+          }
+        }, 3000);
+      } else {
+        clearInterval(playTimer);
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') nextStage();
+      if (e.key === 'ArrowLeft') prevStage();
+      if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+    });
+
+    updateStage();
+  </script>
+</body>
+</html>
