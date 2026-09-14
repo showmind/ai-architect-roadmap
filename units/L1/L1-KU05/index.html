@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>代码复用与模块化设计 — AI时代的架构师养成之路</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --fg: #e4e4e7;
+      --accent: #3b82f6;
+      --card: #18181b;
+      --border: #27272a;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --purple: #8b5cf6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+    }
+    header {
+      text-align: center;
+      padding: 60px 20px 30px;
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 { font-size: 2rem; color: #fff; margin-bottom: 8px; }
+    header p { color: #a1a1aa; font-size: 1rem; max-width: 600px; margin: 0 auto; }
+
+    .progress-container {
+      max-width: 800px;
+      margin: 30px auto 0;
+      padding: 0 20px;
+    }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: .85rem;
+      color: #a1a1aa;
+      margin-bottom: 8px;
+    }
+    .progress-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), #8b5cf6);
+      border-radius: 3px;
+      transition: width .6s ease;
+    }
+
+    .principles {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+      padding: 40px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .principle-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color .2s, transform .2s;
+    }
+    .principle-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .card-header {
+      padding: 24px 24px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+    .card-icon.compose { background: rgba(59,130,246,.2); color: #3b82f6; }
+    .card-icon.cohesion { background: rgba(34,197,94,.2); color: #22c55e; }
+    .card-icon.interface { background: rgba(245,158,11,.2); color: #f59e0b; }
+    .card-icon.dry { background: rgba(139,92,246,.2); color: #8b5cf6; }
+    .card-icon.modular { background: rgba(6,182,212,.2); color: #06b6d4; }
+    .card-title { font-size: 1.15rem; color: #fff; font-weight: 600; }
+    .card-tag { font-size: .7rem; padding: 2px 8px; border-radius: 999px; background: rgba(59,130,246,.15); color: var(--accent); }
+    .card-summary {
+      padding: 0 24px 16px;
+      font-size: .9rem;
+      color: #a1a1aa;
+    }
+    .card-expand {
+      padding: 0 24px;
+      font-size: .8rem;
+      color: var(--accent);
+      transition: color .2s;
+    }
+    .principle-card:hover .card-expand { color: #60a5fa; }
+
+    .card-detail {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .4s ease;
+    }
+    .principle-card.expanded .card-detail {
+      max-height: 1200px;
+    }
+    .detail-inner {
+      padding: 0 24px 24px;
+    }
+    .detail-section {
+      margin-bottom: 16px;
+    }
+    .detail-section h4 {
+      font-size: .85rem;
+      color: var(--accent);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .detail-section p, .detail-section pre {
+      font-size: .88rem;
+      color: #d4d4d8;
+      line-height: 1.7;
+    }
+    .detail-section pre {
+      background: #111;
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: .8rem;
+      border: 1px solid var(--border);
+    }
+    .detail-section .analogy {
+      background: rgba(59,130,246,.08);
+      border-left: 3px solid var(--accent);
+      padding: 10px 14px;
+      border-radius: 0 6px 6px 0;
+      font-size: .88rem;
+      color: #c7d2fe;
+    }
+    .detail-section .interview {
+      background: rgba(245,158,11,.08);
+      border-left: 3px solid var(--warning);
+      padding: 10px 14px;
+      border-radius: 0 6px 6px 0;
+      font-size: .85rem;
+      color: #fde68a;
+    }
+    .code-example { display: flex; gap: 12px; flex-wrap: wrap; }
+    .code-example div { flex: 1; min-width: 200px; }
+    .code-label {
+      font-size: .75rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .code-label.bad { color: var(--danger); }
+    .code-label.good { color: var(--success); }
+
+    .cta {
+      text-align: center;
+      padding: 40px 20px 60px;
+    }
+    .cta a {
+      display: inline-block;
+      padding: 14px 40px;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .cta a:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(59,130,246,.3); }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #52525b;
+      font-size: .85rem;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 600px) {
+      .principles { grid-template-columns: 1fr; padding: 20px 12px; }
+      header h1 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🧩 代码复用与模块化设计</h1>
+    <p>5大核心原则 — 从代码复用到架构复用的演进之路</p>
+  </header>
+
+  <div class="progress-container">
+    <div class="progress-label">
+      <span>学习进度</span>
+      <span id="progress-text">0 / 5 已掌握</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+  </div>
+
+  <section class="principles">
+
+    <!-- 组合优于继承 -->
+    <article class="principle-card" onclick="this.classList.toggle('expanded')">
+      <div class="card-header">
+        <div class="card-icon compose">🧱</div>
+        <div>
+          <div class="card-title">组合优于继承</div>
+          <span class="card-tag">Composition Over Inheritance</span>
+        </div>
+      </div>
+      <p class="card-summary">通过对象组合而非类继承来达到代码复用，避免继承的脆性基类问题。</p>
+      <p class="card-expand">点击展开详情 →</p>
+      <div class="card-detail">
+        <div class="detail-inner">
+          <div class="detail-section">
+            <h4>一句话解释</h4>
+            <p>使用对象组合而非类继承来实现代码复用，继承会创建脆弱的基类耦合，组合则提供灵活的运行时行为切换。</p>
+          </div>
+          <div class="detail-section">
+            <h4>代码反例 / 正例</h4>
+            <div class="code-example">
+              <div>
+                <div class="code-label bad">❌ 反例：继承脆性</div>
+                <pre>class Bird {
+  fly() { /* 拍翅膀 */ }
+}
+class Penguin extends Bird {
+  // 企鹅不会飞，但继承了fly()
+  // 必须覆盖或抛出异常
+}</pre>
+              </div>
+              <div>
+                <div class="code-label good">✅ 正例：组合灵活</div>
+                <pre>interface FlyBehavior {
+  void fly();
+}
+class Bird {
+  FlyBehavior fly;
+  void setFly(FlyBehavior f) {
+    this.fly = f;
+  }
+}
+new Bird().setFly(new NoFly());
+// 运行时动态切换行为</pre>
+              </div>
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4>实际架构场景</h4>
+            <div class="analogy">
+              🏗️ 框架设计：Spring Framework 不让 Service 继承 BaseService，而是通过依赖注入组合各种 Strategy。运行时可以替换数据源的实现（MySQL → PostgreSQL），无需修改任何继承链。
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4>面试考点</h4>
+            <div class="interview">
+              ❓ 组合优于继承的优缺点是什么？<br>
+              💡 优点：运行时灵活、松耦合、避免菱形继承问题。缺点：需要更多对象创建、代码量略增。核心在于"继承是静态的，组合是动态的"。<br>
+              ❓ 何时该用继承？<br>
+              💡 当存在真正的"is-a"关系且子类不需要改变父类行为时。
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 高内聚低耦合 -->
+    <article class="principle-card" onclick="this.classList.toggle('expanded')">
+      <div class="card-header">
+        <div class="card-icon cohesion">🎯</div>
+        <div>
+          <div class="card-title">高内聚低耦合</div>
+          <span class="card-tag">High Cohesion Low Coupling</span>
+        </div>
+      </div>
+      <p class="card-summary">模块内部紧密相关，模块之间松散依赖。这是衡量软件架构质量的黄金标准。</p>
+      <p class="card-expand">点击展开详情 →</p>
+      <div class="card-detail">
+        <div class="detail-inner">
+          <div class="detail-section">
+            <h4>一句话解释</h4>
+            <p>每个模块内部元素紧密相关（高内聚），模块之间依赖最小化（低耦合），使系统易于维护和演进。</p>
+          </div>
+          <div class="detail-section">
+            <h4>代码反例 / 正例</h4>
+            <div class="code-example">
+              <div>
+                <div class="code-label bad">❌ 反例：低内聚高耦合</div>
+                <pre>class OrderService {
+  void validate() {}
+  void saveToDB() {}
+  void sendEmail() {}
+  void generatePDF() {}
+  void callPaymentAPI() {}
+  // 一个类什么都做，修改一处影响全部
+}</pre>
+              </div>
+              <div>
+                <div class="code-label good">✅ 正例：高内聚低耦合</div>
+                <pre>class OrderValidator { void validate() {} }
+class OrderRepository { void save() {} }
+class EmailNotifier { void send() {} }
+class PDFGenerator { void generate() {} }
+class PaymentGateway { void charge() {} }
+// 每个类专注一件事，独立变化</pre>
+              </div>
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4>实际架构场景</h4>
+            <div class="analogy">
+              🏢 微服务拆分：电商系统拆分为订单服务、库存服务、支付服务。各服务独立部署、独立扩展（高内聚），通过 API Gateway 通信（低耦合）。订单服务升级不影响支付服务。
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4>面试考点</h4>
+            <div class="interview">
+              ❓ 如何判断模块是否"高内聚"？<br>
+              💡 内聚度从低到高：偶然内聚 < 逻辑内聚 < 时间内聚 < 过程内聚 < 通信内聚 < 顺序内聚 < 功能内聚。理想是功能内聚——模块只做一件事。<br>
+              ❓ 耦合有哪些级别？<br>
+              💡 内容耦合 > 公共耦合 > 外部耦合 > 控制耦合 > 标记耦合 > 数据耦合。目标是数据耦合。
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 接口隔离 -->
+    <article class="principle-card" onclick="this.classList.toggle('expanded')">
+      <div class="card-header">
+        <div class="card-icon interface">🔌</div>
+        <div>
+          <div class="card-title">接口隔离</div>
+          <span class="card-tag">Interface Segregation Principle</span>
+        </div>
+      </div>
+      <p class="card-summary">客户端不应依赖它不需要的接口。将庞大接口拆分为多个专用小接口。</p>
+      <p class="card-expand">点击展开详情 →</p>
+      <div class="card-detail">
+        <div class="detail-inner">
+          <div class="detail-section">
+            <h4>一句话解释</h4>
+            <p>一个类对另一个类的依赖应该建立在最小的接口上——不要强迫客户端依赖它不使用的方法。</p>
+          </div>
+          <div class="detail-section">
+            <h4>代码反例 / 正例</h4>
+            <div class="code-example">
+              <div>
+                <div class="code-label bad">❌ 反例：胖接口</div>
+                <pre>interface Worker {
+  void work();
+  void eat();
+  void sleep();
+}
+class Robot implements Worker {
+  void work() {}
+  void eat() { throw new UnsupportedOperationException(); }
+  void sleep() { throw new UnsupportedOperationException(); }
+}
+// 机器人被迫实现不需要的方法</pre>
+              </div>
+              <div>
+                <div class="code-label good">✅ 正例：瘦接口</div>
+                <pre>interface Workable { void work(); }
+interface Eatable { void eat(); }
+interface Sleepable { void sleep(); }
+class Human implements Workable, Eatable, Sleepable {}
+class Robot implements Workable {}
+// 每个类只实现需要的接口</pre>
+              </div>
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4>实际架构场景</h4>
+            <div class="analogy">
+              🔌 USB 协议：USB-A、USB-C、Thunderbolt 是不同的接口规范，设备只实现需要的接口。打印机不需要音频接口，手机不需要视频输出接口。接口隔离让系统灵活适配。
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4>面试考点</h4>
+            <div class="interview">
+              ❓ ISP 和单一职责原则（SRP）有什么区别？<br>
+              💡 SRP 关注类/模块的职责数量（一个类只有一个变更原因），ISP 关注接口的粒度（客户端不应被迫依赖不使用的方法）。ISP 是 SRP 在接口层面的体现。
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- DRY 原则深化 -->
+    <article class="principle-card" onclick="this.classList.toggle('expanded')">
+      <div class="card-header">
+        <div class="card-icon dry">📊</div>
+        <div>
+          <div class="card-title">DRY 原则深化</div>
+          <span class="card-tag">Don't Repeat Yourself — Evolved</span>
+        </div>
+      </div>
+      <p class="card-summary">DRY 不仅是代码复用，更是从代码复用→架构复用→平台复用的逐层升华。</p>
+      <p class="card-expand">点击展开详情 →</p>
+      <div class="card-detail">
+        <div class="detail-inner">
+          <div class="detail-section">
+            <h4>一句话解释</h4>
+            <p>DRY 的本质是"每一块知识都有单一权威的表述方式"，从代码级别的函数复用，上升到架构级别的模式复用，最终到平台级别的能力复用。</p>
+          </div>
+          <div class="detail-section">
+            <h4>代码反例 / 正例</h4>
+            <div class="code-example">
+              <div>
+                <div class="code-label bad">❌ 反例：伪DRY</div>
+                <pre>// 三个方法只是参数不同，本质是重复
+void processOrder(Order o) { /* ... */ }
+void processRefund(Refund r) { /* 类似逻辑 */ }
+void processReturn(Return ret) { /* 类似逻辑 */ }
+// "三处几乎相同的代码"仍是DRY违规</pre>
+              </div>
+              <div>
+                <div class="code-label good">✅ 正例：真正的DRY演进</div>
+                <pre>// 代码复用：提取公共函数
+void process(Transaction t) { ... }
+
+// 架构复用：使用模板方法模式
+abstract class TransactionPipeline {
+  abstract void validate();
+  abstract void execute();
+  final void process() { validate(); execute(); }
+}
+
+// 平台复用：构建交易服务平台
+// 业务方只配置规则，平台处理所有基础设施</pre>
+              </div>
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4>实际架构场景</h4>
+            <div class="analogy">
+              🏗️ 复用三层：第一层——函数库（工具类）；第二层——架构框架（Spring 的 IoC 容器，所有项目复用同一套依赖管理）；第三层——平台（PaaS 平台提供部署、监控、日志，业务方只需写业务代码）。越往上复用级别越高，影响力越大。
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4>面试考点</h4>
+            <div class="interview">
+              ❓ DRY 和 KISS 有冲突吗？<br>
+              💡 表面上看 DRY 鼓励抽象复用（可能增加复杂度），KISS 要求简单。平衡点在于：抽象的收益（减少重复）是否大于其维护成本。好的抽象是"简单且可复用"的。<br>
+              ❓ 什么是 AHA 编程（Avoid Hand-Abstraction）？<br>
+              💡 当你发现第三次重复时才提取抽象，而非第一次。过早抽象是 YAGNI 违反者的借口，但过晚抽象是 DRY 违反者的借口。
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 模块化设计模式 -->
+    <article class="principle-card" onclick="this.classList.toggle('expanded')">
+      <div class="card-header">
+        <div class="card-icon modular">⚙️</div>
+        <div>
+          <div class="card-title">模块化设计模式</div>
+          <span class="card-tag">Modular Design Patterns</span>
+        </div>
+      </div>
+      <p class="card-summary">微内核、插件化、分层架构——三种主流模块化模式，应对不同复杂度的系统需求。</p>
+      <p class="card-expand">点击展开详情 →</p>
+      <div class="card-detail">
+        <div class="detail-inner">
+          <div class="detail-section">
+            <h4>一句话解释</h4>
+            <p>将系统组织为独立模块的架构模式：微内核（核心+扩展）、插件化（动态加载）、分层架构（单向依赖），各有适用场景。</p>
+          </div>
+          <div class="detail-section">
+            <h4>代码反例 / 正例</h4>
+            <div class="code-example">
+              <div>
+                <div class="code-label bad">❌ 反例：无模式的大泥球</div>
+                <pre>// 所有模块混在一起
+// 无法独立测试、部署、替换
+// 修改一个功能可能影响所有其他功能</pre>
+              </div>
+              <div>
+                <div class="code-label good">✅ 正例：分层架构</div>
+                <pre>// 表现层 → 业务层 → 数据层
+class PresentationLayer {
+  void handleRequest() {
+    bizLayer.process();
+  }
+}
+class BusinessLayer {
+  void process() {
+    repo.save();
+  }
+}
+// 依赖只能向内层传递</pre>
+              </div>
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4>实际架构场景</h4>
+            <div class="analogy">
+              🔧 VS Code：典型的插件化架构。核心编辑器是微内核，扩展（插件）是插件化模式，文件管理/调试/版本控制是分层架构。三个模式在同一产品中共存，各司其职。
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4>面试考点</h4>
+            <div class="interview">
+              ❓ 微内核和插件化的区别？<br>
+              💡 微内核强调核心稳定+扩展灵活（如 Eclipse），插件化强调运行时动态加载/卸载（如 VS Code 扩展）。微内核是结构模式，插件化是部署模式。<br>
+              ❓ 分层架构的缺点？<br>
+              💡 瀑布式依赖可能导致"过度设计"——简单需求也要穿越多层。好的做法是允许旁路（如 CQRS 允许读模型直接访问查询层）。
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
+  <section class="cta">
+    <a href="./quiz.html">📝 开始测验 →</a>
+  </section>
+
+  <footer>
+    Hermes-orchestrated · Free AI Agents Collaboration · MIT License
+  </footer>
+
+  <script>
+    const cards = document.querySelectorAll('.principle-card');
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    let learnedCount = 0;
+
+    cards.forEach((card, idx) => {
+      card.addEventListener('click', () => {
+        if (card.classList.contains('expanded')) {
+          card.classList.remove('expanded');
+          learnedCount = Math.max(0, learnedCount - 1);
+        } else {
+          card.classList.add('expanded');
+          learnedCount++;
+        }
+        const percent = Math.round((learnedCount / cards.length) * 100);
+        progressFill.style.width = percent + '%';
+        progressText.textContent = `${learnedCount} / ${cards.length} 已掌握`;
+      });
+    });
+  </script>
+</body>
+</html>
