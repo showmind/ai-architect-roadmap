@@ -1,131 +1,211 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="theme-dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI时代的架构师养成之路</title>
-  <style>
-    :root { --bg: #0a0a0f; --fg: #e4e4e7; --accent: #3b82f6; --card: #18181b; --border: #27272a; --success: #22c55e; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; }
-    header { text-align: center; padding: 60px 20px 40px; border-bottom: 1px solid var(--border); }
-    header h1 { font-size: 2.2rem; color: #fff; margin-bottom: 12px; }
-    header p { color: #a1a1aa; font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
-
-    .levels { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; padding: 40px 20px; max-width: 1200px; margin: 0 auto; }
-    .level-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; transition: border-color .2s; }
-    .level-card:hover { border-color: var(--accent); }
-    .level-card h2 { font-size: 1.25rem; margin-bottom: 8px; color: #fff; }
-    .level-card .tag { display: inline-block; font-size: .75rem; padding: 2px 8px; border-radius: 999px; background: rgba(59,130,246,.15); color: var(--accent); margin-bottom: 16px; }
-    .level-card ul { list-style: none; }
-    .level-card li { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: .9rem; color: #d4d4d8; display: flex; align-items: center; gap: 8px; }
-    .level-card li:last-child { border-bottom: none; }
-    .level-card li::before { content: "▸"; color: var(--accent); font-size: .8rem; }
-
-    .ku-section { max-width: 1200px; margin: 0 auto; padding: 20px 20px 40px; }
-    .ku-section h2 { font-size: 1.3rem; color: #fff; margin-bottom: 16px; padding-left: 12px; border-left: 3px solid var(--accent); }
-    .ku-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-    .ku-card { display: block; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; text-decoration: none; color: inherit; transition: border-color .2s, transform .2s; }
-    .ku-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .ku-card h3 { font-size: 1rem; color: #fff; margin-bottom: 4px; }
-    .ku-card p { font-size: .82rem; color: #a1a1aa; margin-bottom: 10px; }
-    .ku-card .ku-meta { display: flex; gap: 8px; font-size: .7rem; }
-    .ku-card .ku-tag { padding: 2px 8px; border-radius: 999px; }
-    .ku-tag.done { background: rgba(34,197,94,.15); color: #4ade80; }
-    .ku-tag.pending { background: rgba(245,158,11,.12); color: #fbbf24; }
-
-    .cta { text-align: center; padding: 40px 20px 60px; }
-    .cta a { display: inline-block; padding: 12px 32px; background: var(--accent); color: #fff; text-decoration: none; border-radius: 8px; font-size: 1rem; font-weight: 500; transition: background .2s; }
-    .cta a:hover { background: #2563eb; }
-    footer { text-align: center; padding: 20px; color: #52525b; font-size: .85rem; border-top: 1px solid var(--border); }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/design-system.css">
 </head>
 <body>
-  <header>
-    <h1>🏗️ AI时代的架构师养成之路</h1>
-    <p>以互动网页、动画、视频、交互题为载体，系统化拆解架构师知识体系</p>
-  </header>
-
-  <section class="levels">
-    <div class="level-card">
-      <h2>Level 1 · 架构师基石</h2>
-      <span class="tag">0-2年经验</span>
-      <ul>
-        <li>设计模式精选与架构应用</li>
-        <li>编码规范与 SOLID 原则</li>
-        <li>数据结构工程实践</li>
-        <li>架构思维四原则</li>
-        <li>代码复用与模块化设计</li>
-      </ul>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="./index.html" class="nav-logo">🏗️ 架构师养成之路</a>
+      <div class="nav-links">
+        <a href="#level1" class="nav-link">Level 1 · 基石</a>
+        <a href="#level2" class="nav-link">Level 2 · 进阶</a>
+        <a href="#level3" class="nav-link">Level 3 · 战略</a>
+        <a href="./MASTER_PLAN.md" class="btn btn-primary">📋 知识大纲</a>
+      </div>
     </div>
-    <div class="level-card">
-      <h2>Level 2 · 分布式与架构设计</h2>
-      <span class="tag">3-5年经验</span>
-      <ul>
-        <li>CAP/BASE 与共识算法</li>
-        <li>微服务拆分、治理、Service Mesh</li>
-        <li>高并发/高可用/高性能架构</li>
-        <li>云原生与 K8s 编排</li>
-      </ul>
-    </div>
-    <div class="level-card">
-      <h2>Level 3 · 战略与前沿</h2>
-      <span class="tag">6年+经验</span>
-      <ul>
-        <li>TOGAF / C4 Model / ATAM</li>
-        <li>AI + 架构融合（LLM/MCP/Agent）</li>
-        <li>混沌工程与韧性设计</li>
-        <li>架构师软技能与决策力</li>
-      </ul>
-    </div>
-  </section>
+  </nav>
 
-  <section class="ku-section">
-    <h2>📚 Level 1 · 已完成</h2>
-    <div class="ku-grid">
-      <a class="ku-card" href="./units/L1/L1-KU04/index.html">
-        <h3>🏗️ 架构思维入门</h3>
-        <p>DRY、YAGNI、KISS、分离关注点 — 四个贯穿架构生涯的思维原则</p>
-        <div class="ku-meta"><span class="ku-tag done">✅ 已完成</span><span class="ku-tag">互动网页 + 动画 + 测验</span></div>
-      </a>
-      <a class="ku-card" href="./units/L1/L1-KU02/index.html">
-        <h3>📐 SOLID 原则</h3>
-        <p>单一职责、开闭、里氏替换、接口隔离、依赖倒置</p>
-        <div class="ku-meta"><span class="ku-tag done">✅ 已完成</span><span class="ku-tag">互动网页 + 动画 + 测验</span></div>
-      </a>
-      <a class="ku-card" href="./units/L1/L1-KU01/index.html">
-        <h3>🎨 设计模式精选</h3>
-        <p>10种最常用于架构的设计模式详解</p>
-        <div class="ku-meta"><span class="ku-tag done">✅ 已完成</span><span class="ku-tag">互动网页 + 动画 + 测验</span></div>
-      </a>
-      <a class="ku-card" href="./units/L1/L1-KU03/index.html">
-        <h3>🧮 数据结构与算法</h3>
-        <p>HashMap、跳表、B+树、布隆过滤器、一致性哈希</p>
-        <div class="ku-meta"><span class="ku-tag done">✅ 已完成</span><span class="ku-tag">互动网页 + 动画 + 测验</span></div>
-      </a>
-      <a class="ku-card" href="./units/L1/L1-KU05/index.html">
-        <h3>🔧 代码复用与模块化</h3>
-        <p>组合优于继承、高内聚低耦合、接口隔离</p>
-        <div class="ku-meta"><span class="ku-tag done">✅ 已完成</span><span class="ku-tag">互动网页 + 动画 + 测验</span></div>
-      </a>
-    </div>
-  </section>
+  <main>
+    <!-- Hero -->
+    <section class="section-lg" style="text-align:center; padding-top: var(--space-10);">
+      <div class="container-narrow">
+        <h1 class="display-hero fade-in" style="margin-bottom: var(--space-5);">AI时代的<br>架构师养成之路</h1>
+        <p class="body-lg text-secondary slide-up" style="max-width:560px; margin:0 auto var(--space-6);">
+          以互动网页、动画、视频、交互题为载体，系统化拆解架构师知识体系。<br>
+          从程序员到技术专家的完整进阶指南。
+        </p>
+        <div class="flex flex-center flex-gap-md slide-up">
+          <a href="#level1" class="btn btn-primary">开始学习</a>
+          <a href="./MASTER_PLAN.md" class="btn btn-secondary">查看大纲</a>
+        </div>
+      </div>
+    </section>
 
-  <section class="ku-section">
-    <h2>📚 Level 2 · 已完成</h2>
-    <div class="ku-grid">
-      <a class="ku-card" href="./units/L2/L2-KU01/index.html">
-        <h3>⚖️ CAP 定理与 BASE 理论</h3>
-        <p>分布式系统设计的核心权衡 — 一致性、可用性、分区容错</p>
-        <div class="ku-meta"><span class="ku-tag done">✅ 已完成</span><span class="ku-tag">互动网页 + 动画 + 测验</span></div>
-      </a>
-    </div>
-  </section>
+    <!-- KPI -->
+    <section class="section-sm section-warm">
+      <div class="container">
+        <div class="grid grid-4 text-center">
+          <div class="kpi"><div class="kpi-value">28</div><div class="kpi-label">知识单元</div></div>
+          <div class="kpi"><div class="kpi-value">3</div><div class="kpi-label">能力层级</div></div>
+          <div class="kpi"><div class="kpi-value">140+</div><div class="kpi-label">互动题目</div></div>
+          <div class="kpi"><div class="kpi-value">5</div><div class="kpi-label">面试专题</div></div>
+        </div>
+      </div>
+    </section>
 
-  <section class="cta">
-    <a href="./MASTER_PLAN.md">📋 查看完整知识大纲</a>
-  </section>
+    <!-- Level 1 -->
+    <section id="level1" class="section">
+      <div class="container">
+        <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom: var(--space-6); flex-wrap:wrap; gap:var(--space-4);">
+          <div>
+            <span class="badge badge-accent" style="margin-bottom:var(--space-3);">0-2年经验</span>
+            <h2 class="heading-section">Level 1 · 架构师基石</h2>
+          </div>
+          <span class="body-sm text-muted">5/5 已完成</span>
+        </div>
+        <div class="grid grid-cards">
+          <a class="card card-clickable card-interactive" href="./units/L1/L1-KU04/index.html">
+            <div class="card-body">
+              <div class="flex flex-between align-center" style="margin-bottom:var(--space-3);">
+                <span class="badge badge-accent">思维原则</span>
+                <span class="badge badge-success">✅ 已完成</span>
+              </div>
+              <h3 class="card-title" style="margin-bottom:var(--space-2);">架构思维入门</h3>
+              <p class="body-sm text-secondary">DRY、YAGNI、KISS、分离关注点 — 四个贯穿架构生涯的思维原则</p>
+            </div>
+          </a>
+          <a class="card card-clickable card-interactive" href="./units/L1/L1-KU02/index.html">
+            <div class="card-body">
+              <div class="flex flex-between align-center" style="margin-bottom:var(--space-3);">
+                <span class="badge badge-accent">设计原则</span>
+                <span class="badge badge-success">✅ 已完成</span>
+              </div>
+              <h3 class="card-title" style="margin-bottom:var(--space-2);">编码规范与 SOLID</h3>
+              <p class="body-sm text-secondary">单一职责、开闭、里氏替换、接口隔离、依赖倒置</p>
+            </div>
+          </a>
+          <a class="card card-clickable card-interactive" href="./units/L1/L1-KU01/index.html">
+            <div class="card-body">
+              <div class="flex flex-between align-center" style="margin-bottom:var(--space-3);">
+                <span class="badge badge-accent">设计模式</span>
+                <span class="badge badge-success">✅ 已完成</span>
+              </div>
+              <h3 class="card-title" style="margin-bottom:var(--space-2);">设计模式精选</h3>
+              <p class="body-sm text-secondary">10种最常用于架构的设计模式详解</p>
+            </div>
+          </a>
+          <a class="card card-clickable card-interactive" href="./units/L1/L1-KU03/index.html">
+            <div class="card-body">
+              <div class="flex flex-between align-center" style="margin-bottom:var(--space-3);">
+                <span class="badge badge-accent">数据结构</span>
+                <span class="badge badge-success">✅ 已完成</span>
+              </div>
+              <h3 class="card-title" style="margin-bottom:var(--space-2);">数据结构与算法</h3>
+              <p class="body-sm text-secondary">HashMap、跳表、B+树、布隆过滤器、一致性哈希</p>
+            </div>
+          </a>
+          <a class="card card-clickable card-interactive" href="./units/L1/L1-KU05/index.html">
+            <div class="card-body">
+              <div class="flex flex-between align-center" style="margin-bottom:var(--space-3);">
+                <span class="badge badge-accent">模块化</span>
+                <span class="badge badge-success">✅ 已完成</span>
+              </div>
+              <h3 class="card-title" style="margin-bottom:var(--space-2);">代码复用与模块化</h3>
+              <p class="body-sm text-secondary">组合优于继承、高内聚低耦合、接口隔离</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
 
-  <footer>Hermes-orchestrated · OpenCode · CodeBuddy · MIT License</footer>
+    <!-- Level 2 -->
+    <section id="level2" class="section section-warm">
+      <div class="container">
+        <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom: var(--space-6); flex-wrap:wrap; gap:var(--space-4);">
+          <div>
+            <span class="badge badge-accent" style="margin-bottom:var(--space-3);">3-5年经验</span>
+            <h2 class="heading-section">Level 2 · 分布式与架构设计</h2>
+          </div>
+          <span class="body-sm text-muted">1/15 已完成</span>
+        </div>
+        <div class="grid grid-cards">
+          <a class="card card-clickable card-interactive" href="./units/L2/L2-KU01/index.html">
+            <div class="card-body">
+              <div class="flex flex-between align-center" style="margin-bottom:var(--space-3);">
+                <span class="badge badge-accent">分布式理论</span>
+                <span class="badge badge-success">✅ 已完成</span>
+              </div>
+              <h3 class="card-title" style="margin-bottom:var(--space-2);">CAP 定理与 BASE 理论</h3>
+              <p class="body-sm text-secondary">分布式系统设计的核心权衡 — 一致性、可用性、分区容错</p>
+            </div>
+          </a>
+          <div class="card card-interactive" style="opacity:.6;">
+            <div class="card-body">
+              <div class="flex flex-between align-center" style="margin-bottom:var(--space-3);">
+                <span class="badge badge-muted">共识算法</span>
+                <span class="badge badge-warning">⬜ 待开发</span>
+              </div>
+              <h3 class="card-title" style="margin-bottom:var(--space-2);">共识算法</h3>
+              <p class="body-sm text-secondary">Paxos、Raft 与分布式一致性</p>
+            </div>
+          </div>
+          <div class="card card-interactive" style="opacity:.6;">
+            <div class="card-body">
+              <div class="flex flex-between align-center" style="margin-bottom:var(--space-3);">
+                <span class="badge badge-muted">分布式事务</span>
+                <span class="badge badge-warning">⬜ 待开发</span>
+              </div>
+              <h3 class="card-title" style="margin-bottom:var(--space-2);">分布式事务</h3>
+              <p class="body-sm text-secondary">2PC、3PC、Seata、TCC 模式</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Level 3 -->
+    <section id="level3" class="section">
+      <div class="container">
+        <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom: var(--space-6); flex-wrap:wrap; gap:var(--space-4);">
+          <div>
+            <span class="badge badge-accent" style="margin-bottom:var(--space-3);">6年+经验</span>
+            <h2 class="heading-section">Level 3 · 战略与前沿</h2>
+          </div>
+          <span class="body-sm text-muted">0/8 已完成</span>
+        </div>
+        <div class="grid grid-cards">
+          <div class="card card-interactive" style="opacity:.6;">
+            <div class="card-body">
+              <div class="flex flex-between align-center" style="margin-bottom:var(--space-3);">
+                <span class="badge badge-muted">企业架构</span>
+                <span class="badge badge-warning">⬜ 待开发</span>
+              </div>
+              <h3 class="card-title" style="margin-bottom:var(--space-2);">TOGAF / C4 Model</h3>
+              <p class="body-sm text-secondary">企业架构框架与架构文档化</p>
+            </div>
+          </div>
+          <div class="card card-interactive" style="opacity:.6;">
+            <div class="card-body">
+              <div class="flex flex-between align-center" style="margin-bottom:var(--space-3);">
+                <span class="badge badge-muted">AI融合</span>
+                <span class="badge badge-warning">⬜ 待开发</span>
+              </div>
+              <h3 class="card-title" style="margin-bottom:var(--space-2);">AI + 架构融合</h3>
+              <p class="body-sm text-secondary">LLM 辅助设计、MCP 协议、Agent 架构</p>
+            </div>
+          </div>
+          <div class="card card-interactive" style="opacity:.6;">
+            <div class="card-body">
+              <div class="flex flex-between align-center" style="margin-bottom:var(--space-3);">
+                <span class="badge badge-muted">韧性工程</span>
+                <span class="badge badge-warning">⬜ 待开发</span>
+              </div>
+              <h3 class="card-title" style="margin-bottom:var(--space-2);">混沌工程与韧性</h3>
+              <p class="body-sm text-secondary">故障注入、容错设计、系统韧性</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer style="text-align:center; padding: var(--space-7) var(--space-5); color: var(--text-muted); font-size: var(--text-body-sm); border-top: 1px solid var(--border);">
+    Hermes-orchestrated · OpenCode · CodeBuddy · MIT License
+  </footer>
 </body>
 </html>

@@ -1,277 +1,204 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="theme-dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>架构思维入门 — AI时代的架构师养成之路</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../assets/design-system.css">
   <style>
-    :root {
-      --bg: #0a0a0f;
-      --fg: #e4e4e7;
-      --accent: #3b82f6;
-      --card: #18181b;
-      --border: #27272a;
-      --success: #22c55e;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--fg);
-      line-height: 1.6;
-    }
-    header {
-      text-align: center;
-      padding: 50px 20px 25px;
-      border-bottom: 1px solid var(--border);
-    }
-    header h1 { font-size: 1.8rem; color: #fff; margin-bottom: 6px; }
-    header p { color: #a1a1aa; font-size: .95rem; max-width: 560px; margin: 0 auto; }
-
-    .progress-container {
-      max-width: 700px;
-      margin: 24px auto 0;
-      padding: 0 20px;
-    }
-    .progress-label { display: flex; justify-content: space-between; font-size: .8rem; color: #a1a1aa; margin-bottom: 6px; }
-    .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-    .progress-fill { height: 100%; width: 0; background: var(--accent); border-radius: 3px; transition: width .6s ease; }
-
-    .principles { max-width: 900px; margin: 0 auto; padding: 30px 20px; }
-    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-    .principle-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 20px;
-      cursor: pointer;
-      transition: border-color .2s, transform .2s;
-    }
-    .principle-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .principle-card.expanded { border-color: var(--accent); }
-
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .card-header h3 { font-size: 1rem; color: #fff; }
-    .card-en { font-size: .75rem; color: #71717a; }
-    .card-tag { font-size: .65rem; padding: 2px 8px; border-radius: 999px; background: rgba(59,130,246,.12); color: #60a5fa; }
-    .card-summary { font-size: .85rem; color: #a1a1aa; margin: 8px 0; }
-    .card-expand { font-size: .75rem; color: #71717a; text-align: right; }
-    .principle-card:hover .card-expand { color: #60a5fa; }
-
-    .card-detail {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height .35s ease;
-    }
-    .principle-card.expanded .card-detail { max-height: 900px; }
-
-    .detail-section { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
-    .detail-section h4 { font-size: .85rem; color: #60a5fa; margin-bottom: 6px; }
-    .detail-section p { font-size: .83rem; color: #d4d4d8; }
-    .detail-section pre {
-      background: #0f0f14;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px;
-      font-size: .75rem;
-      color: #e4e4e7;
-      overflow-x: auto;
-      margin: 6px 0;
-      white-space: pre-wrap;
-    }
-    .bad { color: #f87171; }
-    .good { color: #4ade80; }
-
-    .cta { text-align: center; padding: 20px 20px 50px; }
-    .cta a {
-      display: inline-block;
-      padding: 10px 28px;
-      background: var(--accent);
-      color: #fff;
-      text-decoration: none;
-      border-radius: 8px;
-      font-size: .95rem;
-    }
-    .cta a:hover { background: #2563eb; }
-
-    footer { text-align: center; padding: 18px; color: #52525b; font-size: .8rem; border-top: 1px solid var(--border); }
-
-    @media (max-width: 600px) {
-      header h1 { font-size: 1.4rem; }
-      .card-grid { grid-template-columns: 1fr; }
-    }
+    .principle-card { cursor: pointer; user-select: none; }
+    .card-header-click { display: flex; justify-content: space-between; align-items: flex-start; }
+    .card-summary { font-size: var(--text-body-sm); color: var(--text-secondary); margin: var(--space-3) 0; }
+    .card-expand-hint { font-size: var(--text-caption); color: var(--text-muted); text-align: right; }
+    .principle-card:hover .card-expand-hint { color: var(--accent); }
+    .detail-section { margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border); }
+    .detail-section:first-of-type { margin-top: var(--space-3); }
+    .detail-section h4 { font-size: var(--text-body-sm); font-weight: var(--weight-semibold); color: var(--accent-text); margin-bottom: var(--space-2); }
+    .detail-section p { font-size: var(--text-body-sm); color: var(--text-secondary); }
+    .bad { color: var(--danger); }
+    .good { color: var(--success); }
   </style>
 </head>
 <body>
-  <header>
-    <h1>🏗️ 架构思维入门</h1>
-    <p>DRY、YAGNI、KISS、分离关注点 —— 四个贯穿整个架构生涯的思维原则</p>
-  </header>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../../../index.html" class="nav-logo">🏗️ 架构师养成之路</a>
+      <div class="nav-links">
+        <a href="./index.html" class="nav-link" style="color:var(--accent);">架构思维入门</a>
+        <a href="./animation.html" class="nav-link">动画演示</a>
+        <a href="./quiz.html" class="btn btn-primary">📝 开始测验</a>
+      </div>
+    </div>
+  </nav>
 
-  <section class="progress-container">
-    <div class="progress-label"><span>学习进度</span><span id="progress-text">0 / 4 已掌握</span></div>
-    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
-  </section>
+  <main>
+    <!-- Hero -->
+    <section class="section-lg" style="text-align:center; padding-top: var(--space-9);">
+      <div class="container-narrow">
+        <span class="badge badge-accent" style="margin-bottom:var(--space-4);">L1-KU04 · Level 1 基石</span>
+        <h1 class="display-hero fade-in" style="margin-bottom:var(--space-4);">架构思维入门</h1>
+        <p class="body-lg text-secondary slide-up" style="max-width:560px; margin:0 auto;">
+          DRY、YAGNI、KISS、分离关注点 — 四个贯穿整个架构生涯的思维原则。点击下方卡片展开每个原则的详解。
+        </p>
+      </div>
+    </section>
 
-  <section class="principles">
-    <div class="card-grid">
-
-      <article class="principle-card" onclick="this.classList.toggle('expanded')">
-        <div class="card-header">
-          <h3>DRY</h3>
-          <span class="card-tag">通用</span>
-        </div>
-        <div class="card-en">Don't Repeat Yourself · 不要重复自己</div>
-        <div class="card-summary">每一段知识/逻辑在系统中都应有单一、权威的表示。</div>
-        <div class="card-expand">点击展开 ▾</div>
-        <div class="card-detail">
-          <div class="detail-section">
-            <h4>核心思想</h4>
-            <p>同样的代码不应出现两次。同样的业务逻辑不应散布在多处。重复是维护的敌人 —— 改一个漏一个。</p>
+    <!-- Progress -->
+    <section class="section-sm">
+      <div class="container">
+        <div style="max-width:600px; margin:0 auto;">
+          <div class="flex flex-between" style="margin-bottom:var(--space-2);">
+            <span class="body-sm text-secondary">学习进度</span>
+            <span class="body-sm text-muted" id="progress-text">0 / 4 已掌握</span>
           </div>
-          <div class="detail-section">
-            <h4>反例（Bad）</h4>
-            <pre><span class="bad">// 多处复制同样的验证逻辑
+          <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0;"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cards -->
+    <section class="section-sm">
+      <div class="container">
+        <div class="grid grid-cards">
+
+          <article class="card card-interactive principle-card" onclick="toggleCard(this)">
+            <div class="card-body">
+              <div class="card-header-click">
+                <div>
+                  <span class="badge badge-accent">通用原则</span>
+                </div>
+                <span class="card-expand-hint">点击展开 ▾</span>
+              </div>
+              <h3 class="card-title" style="margin-top:var(--space-3); margin-bottom:var(--space-1);">DRY</h3>
+              <div class="body-sm text-muted" style="margin-bottom:var(--space-2);">Don't Repeat Yourself · 不要重复自己</div>
+              <div class="card-summary">每一段知识/逻辑在系统中都应有单一、权威的表示。</div>
+              <div class="detail">
+                <div class="detail-inner">
+                  <div class="detail-section">
+                    <h4>核心思想</h4>
+                    <p>同样的代码不应出现两次。同样的业务逻辑不应散布在多处。重复是维护的敌人 —— 改一个漏一个。</p>
+                  </div>
+                  <div class="detail-section">
+                    <h4>反例</h4>
+                    <pre class="code-block"><span class="bad">// 多处复制同样的验证逻辑
 function validateUserA() { /* 20行验证 */ }
 function validateUserB() { /* 完全相同的20行 */ }</span></pre>
-          </div>
-          <div class="detail-section">
-            <h4>正例（Good）</h4>
-            <pre><span class="good">// 提取为单一函数，复用
+                  </div>
+                  <div class="detail-section">
+                    <h4>正例</h4>
+                    <pre class="code-block"><span class="good">// 提取为单一函数，复用
 function validateUser(user) { /* 唯一一份验证 */ }</span></pre>
-          </div>
-          <div class="detail-section">
-            <h4>面试考点</h4>
-            <p>"DRY 不只是代码复用，更是知识的复用。一个需求变更时，应该只需要改一个地方。"</p>
-          </div>
-        </div>
-      </article>
+                  </div>
+                  <div class="detail-section">
+                    <h4>面试考点</h4>
+                    <p>DRY 不只是代码复用，更是知识的复用。一个需求变更时，应该只需要改一个地方。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <article class="principle-card" onclick="this.classList.toggle('expanded')">
-        <div class="card-header">
-          <h3>YAGNI</h3>
-          <span class="card-tag">通用</span>
-        </div>
-        <div class="card-en">You Aren't Gonna Need It · 不要过度设计</div>
-        <div class="card-summary">不要为"可能"需要的功能付出"确定"的开发成本。</div>
-        <div class="card-expand">点击展开 ▾</div>
-        <div class="card-detail">
-          <div class="detail-section">
-            <h4>核心思想</h4>
-            <p>不要实现当前不需要的功能。不要预留"以后可能会用到"的抽象层。今天的过度设计，就是明天的技术债。</p>
-          </div>
-          <div class="detail-section">
-            <h4>反例（Bad）</h4>
-            <pre><span class="bad">// 一开始就搞了 10 种格式解析器，实际只用 JSON
+          <article class="card card-interactive principle-card" onclick="toggleCard(this)">
+            <div class="card-body">
+              <div class="card-header-click">
+                <div><span class="badge badge-accent">通用原则</span></div>
+                <span class="card-expand-hint">点击展开 ▾</span>
+              </div>
+              <h3 class="card-title" style="margin-top:var(--space-3); margin-bottom:var(--space-1);">YAGNI</h3>
+              <div class="body-sm text-muted" style="margin-bottom:var(--space-2);">You Aren't Gonna Need It · 不要过度设计</div>
+              <div class="card-summary">不要为"可能"需要的功能付出"确定"的开发成本。</div>
+              <div class="detail">
+                <div class="detail-inner">
+                  <div class="detail-section"><h4>核心思想</h4><p>不要实现当前不需要的功能。不要预留"以后可能会用到"的抽象层。今天的过度设计，就是明天的技术债。</p></div>
+                  <div class="detail-section"><h4>反例</h4><pre class="code-block"><span class="bad">// 一开始就搞了 10 种格式解析器，实际只用 JSON
 interface Parser { ... }
-class JsonParser, XmlParser, YamlParser, ProtobufParser...</span></pre>
-          </div>
-          <div class="detail-section">
-            <h4>正例（Good）</h4>
-            <pre><span class="good">// 先做 JSON，未来真要扩展再加
-function parse(data) { return JSON.parse(data); }</span></pre>
-          </div>
-          <div class="detail-section">
-            <h4>面试考点</h4>
-            <p>"YAGNI 不是不设计，而是不为未经验证的假设买单。先让它跑起来，再让它跑得好。"</p>
-          </div>
-        </div>
-      </article>
+class JsonParser, XmlParser, YamlParser...</span></pre></div>
+                  <div class="detail-section"><h4>正例</h4><pre class="code-block"><span class="good">// 先做 JSON，未来真要扩展再加
+function parse(data) { return JSON.parse(data); }</span></pre></div>
+                  <div class="detail-section"><h4>面试考点</h4><p>YAGNI 不是不设计，而是不为未经验证的假设买单。先让它跑起来，再让它跑得好。</p></div>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <article class="principle-card" onclick="this.classList.toggle('expanded')">
-        <div class="card-header">
-          <h3>KISS</h3>
-          <span class="card-tag">通用</span>
-        </div>
-        <div class="card-en">Keep It Simple, Stupid · 保持简单</div>
-        <div class="card-summary">简单性是可靠性的基石。避免不必要的复杂性。</div>
-        <div class="card-expand">点击展开 ▾</div>
-        <div class="card-detail">
-          <div class="detail-section">
-            <h4>核心思想</h4>
-            <p>代码应该像在读一个故事，而不是在解一道谜题。任何人都能快速理解的方案，就是好方案。</p>
-          </div>
-          <div class="detail-section">
-            <h4>反例（Bad）</h4>
-            <pre><span class="bad">// 为了炫技写成一行
-const r=a.map(b=>b.c.filter(d=>d.e>0).reduce((p,q)=>p+q.f,0));</span></pre>
-          </div>
-          <div class="detail-section">
-            <h4>正例（Good）</h4>
-            <pre><span class="good">const validItems = items.filter(item => item.score > 0);
-const total = validItems.reduce((sum, item) => sum + item.price, 0);</span></pre>
-          </div>
-          <div class="detail-section">
-            <h4>面试考点</h4>
-            <p>"简单 ≠ 不抽象，而是刚好够用的抽象。能被人读懂的代码，才能被正确维护。"</p>
-          </div>
-        </div>
-      </article>
+          <article class="card card-interactive principle-card" onclick="toggleCard(this)">
+            <div class="card-body">
+              <div class="card-header-click">
+                <div><span class="badge badge-accent">通用原则</span></div>
+                <span class="card-expand-hint">点击展开 ▾</span>
+              </div>
+              <h3 class="card-title" style="margin-top:var(--space-3); margin-bottom:var(--space-1);">KISS</h3>
+              <div class="body-sm text-muted" style="margin-bottom:var(--space-2);">Keep It Simple, Stupid · 保持简单</div>
+              <div class="card-summary">简单性是可靠性的基石。避免不必要的复杂性。</div>
+              <div class="detail">
+                <div class="detail-inner">
+                  <div class="detail-section"><h4>核心思想</h4><p>代码应该像在读一个故事，而不是在解一道谜题。任何人都能快速理解的方案，就是好方案。</p></div>
+                  <div class="detail-section"><h4>反例</h4><pre class="code-block"><span class="bad">const r=a.map(b=>b.c.filter(d=>d.e>0).reduce((p,q)=>p+q.f,0));</span></pre></div>
+                  <div class="detail-section"><h4>正例</h4><pre class="code-block"><span class="good">const validItems = items.filter(item => item.score > 0);
+const total = validItems.reduce((sum, item) => sum + item.price, 0);</span></pre></div>
+                  <div class="detail-section"><h4>面试考点</h4><p>简单 ≠ 不抽象，而是刚好够用的抽象。能被人读懂的代码，才能被正确维护。</p></div>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <article class="principle-card" onclick="this.classList.toggle('expanded')">
-        <div class="card-header">
-          <h3>分离关注点</h3>
-          <span class="card-tag">通用</span>
-        </div>
-        <div class="card-en">Separation of Concerns · 单一职责</div>
-        <div class="card-summary">每个模块/类只有一个引起它变化的原因。</div>
-        <div class="card-expand">点击展开 ▾</div>
-        <div class="card-detail">
-          <div class="detail-section">
-            <h4>核心思想</h4>
-            <p>把一件事的不同方面分开。前端展示、后端逻辑、数据存储、错误处理 —— 每个关注点各司其职。</p>
-          </div>
-          <div class="detail-section">
-            <h4>反例（Bad）</h4>
-            <pre><span class="bad">// 一个类做了所有事
-class User {
+          <article class="card card-interactive principle-card" onclick="toggleCard(this)">
+            <div class="card-body">
+              <div class="card-header-click">
+                <div><span class="badge badge-accent">通用原则</span></div>
+                <span class="card-expand-hint">点击展开 ▾</span>
+              </div>
+              <h3 class="card-title" style="margin-top:var(--space-3); margin-bottom:var(--space-1);">分离关注点</h3>
+              <div class="body-sm text-muted" style="margin-bottom:var(--space-2);">Separation of Concerns · 单一职责</div>
+              <div class="card-summary">每个模块/类只有一个引起它变化的原因。</div>
+              <div class="detail">
+                <div class="detail-inner">
+                  <div class="detail-section"><h4>核心思想</h4><p>把一件事的不同方面分开。前端展示、后端逻辑、数据存储、错误处理 —— 每个关注点各司其职。</p></div>
+                  <div class="detail-section"><h4>反例</h4><pre class="code-block"><span class="bad">class User {
   saveToDB(); renderHTML(); sendEmail(); validateInput();
-}</span></pre>
-          </div>
-          <div class="detail-section">
-            <h4>正例（Good）</h4>
-            <pre><span class="good">class UserService { validate(){} save(){} }
+}</span></pre></div>
+                  <div class="detail-section"><h4>正例</h4><pre class="code-block"><span class="good">class UserService { validate(){} save(){} }
 class UserView { render(){} }
-class UserNotifier { sendWelcomeEmail(){} }</span></pre>
-          </div>
-          <div class="detail-section">
-            <h4>面试考点</h4>
-            <p>"一个类只有一个职责。如果一个类有多个修改理由，就拆。高内聚、低耦合。"</p>
-          </div>
+class UserNotifier { sendWelcomeEmail(){} }</span></pre></div>
+                  <div class="detail-section"><h4>面试考点</h4><p>一个类只有一个职责。如果一个类有多个修改理由，就拆。高内聚、低耦合。</p></div>
+                </div>
+              </div>
+            </div>
+          </article>
+
         </div>
-      </article>
+      </div>
+    </section>
 
-    </div>
-  </section>
+    <!-- CTA -->
+    <section class="section" style="text-align:center;">
+      <h2 class="heading" style="margin-bottom:var(--space-3);">准备好了吗？</h2>
+      <p class="body text-secondary" style="margin-bottom:var(--space-5);">完成学习后，来检验你的掌握程度。</p>
+      <a href="./quiz.html" class="btn btn-primary">📝 开始测验</a>
+    </section>
+  </main>
 
-  <section class="cta">
-    <a href="./quiz.html">📝 开始测验</a>
-  </section>
-
-  <footer>Hermes-orchestrated · OpenCode · 2026</footer>
+  <footer style="text-align:center; padding: var(--space-7) var(--space-5); color: var(--text-muted); font-size: var(--text-body-sm); border-top: 1px solid var(--border);">
+    参考源：《代码大全2》·《架构整洁之道》Robert C. Martin · 腾讯云架构师成长路线<br>
+    Hermes-orchestrated · OpenCode · 2026
+  </footer>
 
   <script>
-    // 简单的进度追踪 — 点击卡片时累加
     const learned = new Set();
-    const cards = document.querySelectorAll('.principle-card');
-    cards.forEach(card => {
-      card.addEventListener('click', () => {
-        // 短暂延迟让 expanded 类先切换
-        setTimeout(() => {
-          if (card.classList.contains('expanded')) {
-            learned.add(card.querySelector('h3').textContent);
-          } else {
-            learned.delete(card.querySelector('h3').textContent);
-          }
-          const count = learned.size;
-          const pct = (count / 4) * 100;
-          document.getElementById('progress-fill').style.width = pct + '%';
-          document.getElementById('progress-text').textContent = count + ' / 4 已掌握';
-        }, 50);
-      });
-    });
+    function toggleCard(card) {
+      card.classList.toggle('expanded');
+      setTimeout(() => {
+        if (card.classList.contains('expanded')) {
+          learned.add(card.querySelector('.card-title').textContent);
+        } else {
+          learned.delete(card.querySelector('.card-title').textContent);
+        }
+        const count = learned.size;
+        document.getElementById('progress-fill').style.width = (count / 4 * 100) + '%';
+        document.getElementById('progress-text').textContent = count + ' / 4 已掌握';
+      }, 60);
+    }
   </script>
 </body>
 </html>

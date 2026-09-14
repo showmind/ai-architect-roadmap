@@ -1,104 +1,59 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="theme-dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>架构思维测验 — AI时代的架构师养成之路</title>
-  <style>
-    :root {
-      --bg: #0a0a0f;
-      --fg: #e4e4e7;
-      --accent: #3b82f6;
-      --card: #18181b;
-      --border: #27272a;
-      --success: #22c55e;
-      --danger: #ef4444;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--fg);
-      line-height: 1.6;
-    }
-    header { text-align: center; padding: 40px 20px 20px; border-bottom: 1px solid var(--border); }
-    header h1 { font-size: 1.5rem; color: #fff; margin-bottom: 4px; }
-    header p { color: #a1a1aa; font-size: .9rem; }
-
-    .quiz-container { max-width: 720px; margin: 0 auto; padding: 30px 20px; }
-
-    .progress-dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 24px; }
-    .q-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); transition: background .3s; }
-    .q-dot.active { background: var(--accent); }
-    .q-dot.correct { background: var(--success); }
-    .q-dot.wrong { background: var(--danger); }
-
-    .question-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; }
-    .question-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-    .question-type { font-size: .7rem; padding: 2px 8px; border-radius: 999px; }
-    .question-type.single { background: rgba(59,130,246,.15); color: #60a5fa; }
-    .question-type.multi { background: rgba(245,158,11,.15); color: #fbbf24; }
-    .question-num { font-size: .8rem; color: #71717a; }
-    .question-text { font-size: 1rem; color: #fff; margin-bottom: 16px; }
-
-    .options { display: flex; flex-direction: column; gap: 10px; }
-    .option {
-      display: flex;
-      gap: 12px;
-      padding: 12px 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: border-color .2s, background .2s;
-    }
-    .option:hover:not(.disabled) { border-color: var(--accent); background: rgba(59,130,246,.05); }
-    .option.correct { border-color: var(--success); background: rgba(34,197,94,.08); }
-    .option.wrong { border-color: var(--danger); background: rgba(239,68,68,.08); }
-    .option.disabled { cursor: default; }
-    .option-marker { flex-shrink: 0; }
-    .option-letter { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--border); font-size: .8rem; font-weight: 600; }
-    .option.correct .option-letter { background: var(--success); color: #fff; }
-    .option.wrong .option-letter { background: var(--danger); color: #fff; }
-    .option-text { font-size: .9rem; color: #d4d4d8; }
-    .option-explain { font-size: .78rem; color: #a1a1aa; margin-top: 4px; display: none; }
-    .option.correct .option-explain, .option.wrong .option-explain { display: block; }
-
-    .feedback { margin-top: 14px; padding: 10px 14px; border-radius: 8px; font-size: .85rem; display: none; }
-    .feedback.correct { background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.3); color: #4ade80; }
-    .feedback.wrong { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.3); color: #f87171; }
-
-    .result-section { text-align: center; padding: 30px 20px; display: none; }
-    .result-section.show { display: block; }
-    .score-number { font-size: 3rem; font-weight: 700; color: #fff; margin: 10px 0; }
-    .score-comment { font-size: 1.1rem; color: #60a5fa; margin-bottom: 4px; }
-    .score-sub { font-size: .85rem; color: #a1a1aa; margin-bottom: 20px; }
-    .review-btn { padding: 10px 24px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: .9rem; cursor: pointer; }
-    .review-btn:hover { background: #2563eb; }
-
-    footer { text-align: center; padding: 18px; color: #52525b; font-size: .8rem; border-top: 1px solid var(--border); }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../assets/design-system.css">
 </head>
 <body>
-  <header>
-    <h1>📝 架构思维测验</h1>
-    <p>检验你对 DRY、YAGNI、KISS、分离关注点的理解</p>
-  </header>
-
-  <section class="quiz-container">
-    <div class="progress-dots" id="dots"></div>
-    <div id="questions-container"></div>
-    <div class="result-section" id="result-section">
-      <div class="score-number" id="score-number">0/5</div>
-      <div class="score-comment" id="comment"></div>
-      <div class="score-sub" id="comment-sub"></div>
-      <button class="review-btn" onclick="location.reload()">🔄 重新测验</button>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../../../index.html" class="nav-logo">🏗️ 架构师养成之路</a>
+      <div class="nav-links">
+        <a href="./index.html" class="nav-link">架构思维入门</a>
+        <a href="./animation.html" class="nav-link">动画演示</a>
+        <a href="./quiz.html" class="btn btn-primary" style="background:var(--accent);">📝 开始测验</a>
+      </div>
     </div>
-  </section>
+  </nav>
 
-  <footer>Hermes-orchestrated · OpenCode · 2026</footer>
+  <main>
+    <section class="section-lg" style="text-align:center; padding-top: var(--space-9);">
+      <div class="container-narrow">
+        <span class="badge badge-accent" style="margin-bottom:var(--space-4);">L1-KU04 · 互动测验</span>
+        <h1 class="display-hero fade-in" style="margin-bottom:var(--space-4);">架构思维测验</h1>
+        <p class="body-lg text-secondary slide-up" style="max-width:500px; margin:0 auto;">5 道场景题，检验你对 DRY、YAGNI、KISS、分离关注点的理解。</p>
+      </div>
+    </section>
+
+    <section class="section-sm">
+      <div class="container">
+        <div style="max-width:680px; margin:0 auto;">
+          <!-- Progress dots -->
+          <div style="display:flex; gap:8px; justify-content:center; margin-bottom:var(--space-5);" id="dots"></div>
+
+          <div id="questions-container"></div>
+
+          <!-- Result -->
+          <div id="result-section" style="text-align:center; padding:var(--space-7) 0; display:none;">
+            <div style="font-size:3rem; font-weight:700; margin-bottom:var(--space-3);" id="score-number"></div>
+            <div style="font-size:1.1rem; color:var(--accent); margin-bottom:var(--space-2);" id="comment"></div>
+            <div class="body-sm text-muted" style="margin-bottom:var(--space-5);" id="comment-sub"></div>
+            <button class="btn btn-secondary" onclick="location.reload()">🔄 重新测验</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer style="text-align:center; padding:var(--space-7) var(--space-5); color:var(--text-muted); font-size:var(--text-body-sm); border-top:1px solid var(--border);">
+    参考源：《代码大全2》·《架构整洁之道》Robert C. Martin · 腾讯云架构师成长路线<br>
+    Hermes-orchestrated · OpenCode · 2026
+  </footer>
 
   <script>
-    // 题目数据 — 使用数组索引 0-based
     const QUESTIONS = [
       {
         type: 'single',
@@ -160,7 +115,7 @@
     ];
 
     let current = 0;
-    const answers = {};  // 使用对象存储，key 是题目索引
+    const answers = {};
     let finished = false;
 
     function renderQuestion() {
@@ -170,30 +125,29 @@
       container.innerHTML = '';
 
       const card = document.createElement('div');
-      card.className = 'question-card';
+      card.className = 'card';
 
       const typeLabel = q.type === 'single' ? '单选题' : '多选题';
-      const typeCls = q.type === 'single' ? 'single' : 'multi';
+      const typeCls = q.type === 'single' ? '' : '';
 
       let optionsHtml = '';
       q.options.forEach(opt => {
-        optionsHtml += `
-          <div class="option" onclick="selectOption(${current}, '${opt.letter}')">
-            <div class="option-marker"><span class="option-letter">${opt.letter}</span></div>
-            <div class="option-content">
-              <div class="option-text">${opt.text}</div>
-              <div class="option-explain">${opt.explain}</div>
-            </div>
-          </div>`;
+        optionsHtml += `<div class="option" onclick="selectOption(${current}, '${opt.letter}')">
+          <div class="option-marker"><span class="option-letter">${opt.letter}</span></div>
+          <div class="option-content">
+            <div class="option-text">${opt.text}</div>
+            <div class="option-explain" style="display:none; margin-top:6px; font-size:13px; color:var(--text-muted);">${opt.explain}</div>
+          </div>
+        </div>`;
       });
 
       card.innerHTML = `
-        <div class="question-header">
-          <span class="question-type ${typeCls}">${typeLabel}</span>
-          <span class="question-num">第 ${current + 1} / ${QUESTIONS.length} 题</span>
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+          <span class="badge badge-accent">${typeLabel}</span>
+          <span class="body-sm text-muted">第 ${current + 1} / ${QUESTIONS.length} 题</span>
         </div>
-        <div class="question-text">${q.text}</div>
-        <div class="options">${optionsHtml}</div>
+        <div class="body" style="margin-bottom:18px; color:var(--text-primary);">${q.text}</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">${optionsHtml}</div>
       `;
 
       container.appendChild(card);
@@ -201,29 +155,23 @@
     }
 
     function selectOption(qIdx, letter) {
-      if (answers[qIdx] !== undefined) return; // 已回答
+      if (answers[qIdx] !== undefined) return;
 
       const q = QUESTIONS[qIdx];
       const isMulti = Array.isArray(q.correct);
 
       if (isMulti) {
-        // 多选：存储已选字母数组
         if (!answers[qIdx]) answers[qIdx] = [];
         const arr = answers[qIdx];
         const pos = arr.indexOf(letter);
-        if (pos === -1) {
-          arr.push(letter);
-        } else {
-          arr.splice(pos, 1);
-        }
-        // 检查是否已选够正确答案数量
+        if (pos === -1) arr.push(letter);
+        else arr.splice(pos, 1);
+
         if (arr.length === q.correct.length) {
-          // 检查是否全对
           const allCorrect = q.correct.every(c => arr.includes(c));
           showAnswer(qIdx, allCorrect);
         }
       } else {
-        // 单选
         answers[qIdx] = letter;
         showAnswer(qIdx, letter === q.correct);
       }
@@ -231,12 +179,15 @@
 
     function showAnswer(qIdx, isCorrect) {
       const q = QUESTIONS[qIdx];
-      const card = document.querySelector('.question-card');
+      const card = document.querySelector('#questions-container .card');
       const options = card.querySelectorAll('.option');
 
       options.forEach(opt => {
         opt.classList.add('disabled');
         const letter = opt.querySelector('.option-letter').textContent;
+        const explain = opt.querySelector('.option-explain');
+        explain.style.display = 'block';
+
         if (Array.isArray(q.correct)) {
           if (q.correct.includes(letter)) opt.classList.add('correct');
           else if (answers[qIdx] && answers[qIdx].includes(letter)) opt.classList.add('wrong');
@@ -246,14 +197,13 @@
         }
       });
 
-      // 显示反馈
+      // feedback
       const fb = document.createElement('div');
-      fb.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong');
-      fb.style.display = 'block';
+      fb.className = 'badge ' + (isCorrect ? 'badge-success' : 'badge-warning');
+      fb.style.marginTop = '14px';
       fb.textContent = isCorrect ? '✅ 回答正确！' : '❌ 回答错误，正确答案已标出';
       card.appendChild(fb);
 
-      // 延迟后进入下一题
       setTimeout(() => {
         if (current < QUESTIONS.length - 1) {
           current++;
@@ -261,7 +211,7 @@
         } else {
           showResults();
         }
-      }, 2000);
+      }, 2200);
     }
 
     function updateDots() {
@@ -269,20 +219,18 @@
       dotsContainer.innerHTML = '';
       for (let i = 0; i < QUESTIONS.length; i++) {
         const dot = document.createElement('div');
-        dot.className = 'q-dot';
-        if (i === current && !finished) dot.classList.add('active');
-        if (answers[i] !== undefined) {
+        dot.style.cssText = 'width:10px; height:10px; border-radius:50%; background:var(--warm-200); transition:background .3s;';
+        if (i === current && !finished) { dot.style.background = 'var(--accent)'; }
+        else if (answers[i] !== undefined) {
           const q = QUESTIONS[i];
-          const isMulti = Array.isArray(q.correct);
           let isCorrect;
-          if (isMulti) {
-            isMulti && answers[i].length === q.correct.length && q.correct.every(c => answers[i].includes(c));
-            const arr = answers[i];
+          if (Array.isArray(q.correct)) {
+            const arr = answers[i] || [];
             isCorrect = q.correct.every(c => arr.includes(c)) && arr.length === q.correct.length;
           } else {
             isCorrect = answers[i] === q.correct;
           }
-          dot.classList.add(isCorrect ? 'correct' : 'wrong');
+          dot.style.background = isCorrect ? 'var(--success)' : 'var(--danger)';
         }
         dotsContainer.appendChild(dot);
       }
@@ -304,7 +252,7 @@
       document.getElementById('dots').style.display = 'none';
 
       const resultSection = document.getElementById('result-section');
-      resultSection.classList.add('show');
+      resultSection.style.display = 'block';
       document.getElementById('score-number').textContent = `${score}/${QUESTIONS.length}`;
 
       let comment, sub;
@@ -317,7 +265,6 @@
       document.getElementById('comment-sub').textContent = sub;
     }
 
-    // 启动
     renderQuestion();
   </script>
 </body>
